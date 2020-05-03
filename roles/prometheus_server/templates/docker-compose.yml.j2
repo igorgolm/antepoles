@@ -1,0 +1,114 @@
+version: '3'
+
+networks:
+  monitor-net:
+    ipam:
+      driver: bridge
+      config:
+        - subnet: {{ docker_monitor_subnet }}
+
+services:
+  prometheus:
+    image: {{ prometheus_image }}
+    container_name: {{ prometheus_container_name }}
+    volumes:
+      - {{ prometheus_dir }}/prometheus/configs:/etc/prometheus/
+      - {{ prometheus_dir }}/prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention={{ prometheus_storage_retention }}'
+      - '--web.enable-lifecycle'
+      - '--web.external-url=http://{{ prometheus_container_name }}:{{ prometheus_port }}'
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:{{ prometheus_port }}:{{ prometheus_port }}
+    links:
+      - cadvisor:{{ cadvisor_container_name }}
+      - alertmanager:{{ alertmanager_container_name }}
+      - blackbox_exporter:{{ blackbox_image_name }}
+      - karma:{{ karma_container_name }}
+    depends_on:
+      - {{ cadvisor_container_name }}
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  alertmanager:
+    image: {{ alertmanager_image }}
+    container_name: {{ alertmanager_container_name }}
+    volumes:
+      - {{ prometheus_dir }}/alertmanager/configs:/etc/alertmanager/
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://{{ alertmanager_container_name }}:{{ alertmanager_port }}'
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:{{ alertmanager_port }}:{{ alertmanager_port }}
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  karma:
+    image: {{ karma_image }}
+    container_name: {{ karma_container_name }}
+    environment:
+      - "ALERTMANAGER_URI=http://{{ alertmanager_container_name }}:{{ alertmanager_port }}"
+      - "PORT={{ karma_dashboard_port }}"
+    deploy:
+      labels:
+        prometheus.enable: "true"
+        prometheus.port: "{{ prometheus_port }}"
+        prometheus.path: "/metrics"
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:{{ karma_dashboard_port }}:{{ karma_dashboard_port }}
+    networks:
+      - monitor-net
+
+  cadvisor:
+    image: {{ cadvisor_image }}
+    container_name: {{ cadvisor_container_name }}
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:{{ cadvisor_port }}:{{ cadvisor_port }}
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  blackbox_exporter:
+    image: prom/blackbox-exporter
+    container_name: {{ blackbox_image_name }}
+    ports:
+      - 127.0.0.1:{{ blackbox_port }}:{{ blackbox_port }}
+    restart: unless-stopped
+    networks:
+      - monitor-net
+    volumes:
+      - {{ prometheus_dir }}/blackbox/configs:/config
+    command: --config.file=/config/blackbox.yml
+  
+  loki:
+    image: {{ loki_image }}
+    container_name: {{ loki_image_name }}
+    volumes:
+      - {{ prometheus_dir }}/loki/configs:/etc/loki
+    command:
+      - '-config.file=/etc/loki/config.yaml'
+    ports:
+      - 127.0.0.1:{{ loki_port }}:{{ loki_port }}
+    networks:
+      - monitor-net
+    command: --config.file=/config/blackbox.yml

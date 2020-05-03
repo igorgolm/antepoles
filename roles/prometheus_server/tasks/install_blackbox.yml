@@ -1,0 +1,22 @@
+---
+- name: Create Blackbox configs directory
+  file:
+    path: '{{ prometheus_dir }}/blackbox/configs'
+    state: directory
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0755
+  tags:
+    - install_blackbox
+
+- name: Copy blackbox.yml config
+  template:
+    src: "blackbox/blackbox.yml.j2"
+    dest: "{{ prometheus_dir }}/blackbox/configs/blackbox.yml"
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0644
+    backup: yes
+  tags:
+    - update_configs
+    - install_blackbox

@@ -1,0 +1,76 @@
+# global config
+global:
+  scrape_interval:     20s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 20s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'monitoring'
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  - 'alert.rules'
+  # - "first.rules"
+  # - "second.rules"
+
+# alert
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+      - targets:
+        - "{{ alertmanager_container_name }}:{{ alertmanager_port }}"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+
+  - job_name: 'prometheus'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ['{{ prometheus_container_name }}:{{ prometheus_port }}']
+
+  - job_name: 'cadvisor'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ['{{ cadvisor_container_name }}:{{ cadvisor_port }}']
+
+  - job_name: 'nexus'
+    static_configs:
+      - targets: [{% for host in groups['nexus_servers'] %}'{{ hostvars[host]['inventory_hostname']}}:{{ nexus_exporter_port }}'{% if not loop.last %},{% endif %}{% endfor %}]
+
+  - job_name: 'node_exporter'
+    # SSL and authorization conf
+    scheme: https
+    basic_auth:
+      username: {{ http_auth_user }}
+      password_file: /etc/prometheus/basic_auth.txt
+    tls_config:
+      ca_file: /etc/prometheus/ssl/ca.crt
+      insecure_skip_verify: false
+    static_configs:
+      - targets: [{% for host in groups['node_exporter_servers'] %}'{{ hostvars[host]['inventory_hostname']}}:{{ node_exporter_port }}'{% if not loop.last %},{% endif %}{% endfor %}]
+  
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets: {% for host in groups['test_kolt_servers'] %} 
+         - https://{{ hostvars[host]['inventory_hostname']}}{% endfor %}
+
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: {{ blackbox_image_name }}:{{ blackbox_port }} # Blackbox exporter
+

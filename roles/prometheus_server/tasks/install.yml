@@ -1,0 +1,99 @@
+---
+- name: Create Prometheus directory
+  file:
+    path: '{{ prometheus_dir }}'
+    state: directory
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0755
+  tags:
+    - install_prometheus_server
+
+- name: Create Prometheus data directory
+  file:
+    path: '{{ prometheus_dir }}/prometheus/data'
+    state: directory
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0755
+  tags:
+    - install_prometheus_server
+
+- name: Create Prometheus configs directory
+  file:
+    path: '{{ prometheus_dir }}/prometheus/configs'
+    state: directory
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0755
+  tags:
+    - install_prometheus_server
+
+- name: Copy prometheus.yml config
+  template:
+    src: "prometheus/prometheus.yml.j2"
+    dest: "{{ prometheus_dir }}/prometheus/configs/prometheus.yml"
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0644
+    backup: yes
+  tags:
+    - install_prometheus_server
+    - update_configs
+
+- name: Copy Prometheus http authentication user password file
+  template:
+    src: "prometheus/basic_auth.txt.j2"
+    dest: "{{ prometheus_dir }}/prometheus/configs/basic_auth.txt"
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0640
+  tags:
+    - install_prometheus_server
+    - update_configs
+
+# Copy not as template because of variables in file
+- name: Copy alert.rules
+  copy:
+    src: "../templates/prometheus/alert.rules"
+    dest: "{{ prometheus_dir }}/prometheus/configs/alert.rules"
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0644
+    backup: yes
+  tags:
+    - install_prometheus_server
+    - update_configs
+
+- include_tasks: install_alerter.yml
+  tags:
+    - install_alerter
+    - update_configs
+
+- include_tasks: install_blackbox.yml
+  tags:
+    - install_blackbox
+    - update_configs
+
+- include_tasks: install_loki.yml
+  tags:
+    - install_loki
+    - update_configs
+
+- name: Copy docker-compose file
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ prometheus_dir }}/docker-compose.yml"
+    mode: 0600
+    backup: yes
+  tags:
+    - install_prometheus_server
+    - update_configs
+
+- name: Run docker-compose
+  docker_compose:
+    project_src: "{{ prometheus_dir }}"
+    state: present
+    recreate: "smart"
+  tags:
+    - install_prometheus_server

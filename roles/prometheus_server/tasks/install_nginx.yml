@@ -1,0 +1,189 @@
+---
+- name: Ensure nginx is installed
+  apt:
+    name: nginx
+    state: present
+    default_release: ""
+  tags:
+    - configure_nginx
+
+- name: Create SSL certs directory
+  file:
+    path: "{{ nginx_ssl_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - configure_nginx
+
+- name: Copy nginx configuration in place
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - configure_nginx
+
+- name: Add managed vhost config file for Prometheus
+  template:
+    src: vhosts/prometheus.conf.j2
+    dest: /etc/nginx/sites-available/prometheus.conf
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - configure_nginx
+
+- name: Create a symbolic for Prometheus vhost conf file
+  file:
+    src: /etc/nginx/sites-available/prometheus.conf
+    dest: /etc/nginx/sites-enabled/prometheus.conf
+    owner: root
+    group: root
+    state: link
+  tags:
+    - configure_nginx  
+
+- name: Add managed vhost config file for Cadvisor
+  template:
+    src: vhosts/cadvisor.conf.j2
+    dest: /etc/nginx/sites-available/cadvisor.conf
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - configure_nginx
+
+- name: Create a symbolic for Cadvisor vhost conf file
+  file:
+    src: /etc/nginx/sites-available/cadvisor.conf
+    dest: /etc/nginx/sites-enabled/cadvisor.conf
+    owner: root
+    group: root
+    state: link
+  tags:
+    - configure_nginx  
+
+- name: Add managed vhost config file for Alertmanager
+  template:
+    src: vhosts/alertmanager.conf.j2
+    dest: /etc/nginx/sites-available/alertmanager.conf
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - configure_nginx
+
+- name: Create a symbolic for Alertmanager vhost conf file
+  file:
+    src: /etc/nginx/sites-available/alertmanager.conf
+    dest: /etc/nginx/sites-enabled/alertmanager.conf
+    owner: root
+    group: root
+    state: link
+  tags:
+    - configure_nginx  
+
+- name: Add managed vhost config file for Karma
+  template:
+    src: vhosts/karma.conf.j2
+    dest: /etc/nginx/sites-available/karma.conf
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - configure_nginx
+
+- name: Create a symbolic for Karma vhost conf file
+  file:
+    src: /etc/nginx/sites-available/karma.conf
+    dest: /etc/nginx/sites-enabled/karma.conf
+    owner: root
+    group: root
+    state: link
+  tags:
+    - configure_nginx  
+
+- name: Add managed vhost config file for Blackbox
+  template:
+    src: vhosts/blackbox.conf.j2
+    dest: /etc/nginx/sites-available/blackbox.conf
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - configure_nginx
+
+- name: Create a symbolic for Blackbox vhost conf file
+  file:
+    src: /etc/nginx/sites-available/blackbox.conf
+    dest: /etc/nginx/sites-enabled/blackbox.conf
+    owner: root
+    group: root
+    state: link
+  tags:
+    - configure_nginx  
+
+- name: Add managed vhost config file for Loki
+  template:
+    src: vhosts/loki.conf.j2
+    dest: /etc/nginx/sites-available/loki.conf
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - configure_nginx
+
+- name: Create a symbolic for Loki vhost conf file
+  file:
+    src: /etc/nginx/sites-available/loki.conf
+    dest: /etc/nginx/sites-enabled/loki.conf
+    owner: root
+    group: root
+    state: link
+  tags:
+    - configure_nginx  
+
+- name: Check if htpasswd file exists
+  stat: 
+    path: /etc/nginx/.htpasswd
+  register: htpasswd_file
+  tags:
+    - configure_nginx
+
+- name: htpasswd file existing
+  fail: 
+    msg: "htpasswd file does not exist!"
+  when: htpasswd_file.stat.exists == False
+  tags:
+    - configure_nginx
+
+- name: Remove default conf file
+  file:
+    path: /etc/nginx/sites-available/default
+    state: absent
+  tags:
+    - configure_nginx
+
+- name: Remove default conf file symlink
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  tags:
+    - configure_nginx
+
+- name: validate nginx configuration
+  command: nginx -t -c /etc/nginx/nginx.conf
+  changed_when: false
+  tags:
+    - configure_nginx
+
+- name: restart nginx
+  service: 
+    name: nginx 
+    state: restart
+  tags:
+    - configure_nginx

@@ -1,0 +1,22 @@
+---
+- name: Create Loki configs directory
+  file:
+    path: '{{ prometheus_dir }}/loki/configs'
+    state: directory
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0755
+  tags:
+    - install_loki
+
+- name: Copy loki.yml config
+  template:
+    src: "loki/config.yaml.j2"
+    dest: "{{ prometheus_dir }}/loki/configs/config.yaml"
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0644
+    backup: yes
+  tags:
+    - update_configs
+    - install_loki

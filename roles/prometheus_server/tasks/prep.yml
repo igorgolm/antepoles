@@ -1,0 +1,44 @@
+---
+- include_vars: debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - always
+
+- name: Install a list of packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - always
+
+- name: Install docker-py via pip
+  pip:
+    executable: pip3
+    name: docker
+  tags:
+    - always
+
+# Ansible docker module uses docker-compose as python library, so docker-compose execuable file won't work in this case
+
+- name: Install docker-compose via pip
+  pip:
+    executable: pip3
+    name: docker-compose
+  tags:
+    - always
+
+- name: Add the group for Prometheus user
+  user:
+    name: '{{ prometheus_user_group }}'
+    state: present
+  tags:
+    - always er
+
+- name: Add the user for Prometheus
+  user:
+    name: '{{ prometheus_user }}'
+    comment: Prometheus user
+    shell: /bin/false
+    groups: '{{ prometheus_user_group }}'
+  tags:
+    - always

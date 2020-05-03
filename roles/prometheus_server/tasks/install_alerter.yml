@@ -1,0 +1,42 @@
+---
+- name: Create Prometheus Alertmanager directory
+  file:
+    path: '{{ prometheus_dir }}/alertmanager'
+    state: directory
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0755
+  tags:
+    - install_alerter
+
+- name: Create Prometheus Alertmanager configs directory
+  file:
+    path: '{{ prometheus_dir }}/alertmanager/configs'
+    state: directory
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0755
+  tags:
+    - install_alerter
+
+- name: Create Prometheus Alertmanager data directory
+  file:
+    path: '{{ prometheus_dir }}/alertmanager/data'
+    state: directory
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0755
+  tags:
+    - install_alerter
+
+- name: Copy alert config
+  copy:
+    src: "../templates/alertmanager/config.yml"
+    dest: "{{ prometheus_dir }}/alertmanager/configs/config.yml"
+    owner: root
+    group: '{{ prometheus_user_group }}'
+    mode: 0644
+    backup: yes
+  tags:
+    - update_configs
+    - install_alerter

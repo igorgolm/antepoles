@@ -1,0 +1,290 @@
+groups:
+- name: targets
+  rules:
+  - alert: monitor_service_down
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: page
+    annotations:
+      summary: "Monitor instance {{ $labels.instance }} down, non-operational"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
+
+- name: prometheus
+  rules:
+  - alert: PrometheusConfigurationReload
+    expr: prometheus_config_last_reload_successful != 1
+    for: 1m
+    labels:
+      severity: error
+    annotations:
+      summary: "Prometheus configuration reload (instance {{ $labels.instance }})"
+      description: "Prometheus configuration reload error\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: PrometheusNotConnectedToAlertmanager
+    expr: prometheus_notifications_alertmanagers_discovered < 1
+    for: 1m
+    labels:
+      severity: error
+    annotations:
+      summary: "Prometheus not connected to alertmanager (instance {{ $labels.instance }})"
+      description: "Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: AlertmanagerConfigurationReload
+    expr: alertmanager_config_last_reload_successful != 1
+    for: 1m
+    labels:
+      severity: error
+    annotations:
+      summary: "AlertManager configuration reload (instance {{ $labels.instance }})"
+      description: "AlertManager configuration reload error\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ExporterDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Exporter down (instance {{ $labels.instance }})"
+      description: "Prometheus exporter down\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+- name: host
+  rules:
+  - alert: CPULoad
+    expr: nope_load1 > 1.5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Monitor instance {{ $labels.instance }} is under high load"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} is under high load, the avg load 1 minute is at {{ humanize $value }}."
+
+  - alert: OutOfMemory
+    expr: nodeload1 > (sum(node_memory_MemTotal) - sum(node_memory_MemFree + node_memory_Buffers + node_memory_Cached)) / sum(node_memory_MemTotal) * 100 > 85
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: "Monitor instance {{ $labels.instance }} is out of memory"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} is out of memory, the memory usage 30 seconds is {{ humanize $value }}"
+
+  - alert: UnusualNetworkThroughputIn
+    expr: sum by (instance) (irate(node_network_receive_bytes_total[2m])) / 1024 / 1024 > 100
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Unusual network throughput in (instance {{ $labels.instance }})"
+      description: "Host network interfaces are probably receiving too much data (> 100 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: UnusualNetworkThroughputOut
+    expr: sum by (instance) (irate(node_network_transmit_bytes_total[2m])) / 1024 / 1024 > 100
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Unusual network throughput out (instance {{ $labels.instance }})"
+      description: "Host network interfaces are probably sending too much data (> 100 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: UnusualDiskReadRate
+    expr: sum by (instance) (irate(node_disk_read_bytes_total[2m])) / 1024 / 1024 > 50
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Unusual disk read rate (instance {{ $labels.instance }})"
+      description: "Disk is probably reading too much data (> 50 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: UnusualDiskWriteRate
+    expr: sum by (instance) (irate(node_disk_written_bytes_total[2m])) / 1024 / 1024 > 50
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Unusual disk write rate (instance {{ $labels.instance }})"
+      description: "Disk is probably writing too much data (> 50 MB/s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: OutOfDiskSpace
+    expr: (node_filesystem_avail_bytes{mountpoint="/rootfs"}  * 100) / node_filesystem_size_bytes{mountpoint="/rootfs"} < 20
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Out of disk space (instance {{ $labels.instance }})"
+      description: "Disk is almost full (< 20% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: DiskWillFillIn4Hours
+    expr: predict_linear(node_filesystem_free_bytes{fstype!~"tmpfs"}[1h], 4 * 3600) < 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Disk will fill in 4 hours (instance {{ $labels.instance }})"
+      description: "Disk will fill in 4 hours at current write rate\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: OutOfInodes
+    expr: node_filesystem_files_free{mountpoint ="/rootfs"} / node_filesystem_files{mountpoint ="/rootfs"} * 100 < 10
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Out of inodes (instance {{ $labels.instance }})"
+      description: "Disk is almost running out of available inodes (< 10% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: UnusualDiskReadLatency
+    expr: rate(node_disk_read_time_seconds_total[1m]) / rate(node_disk_reads_completed_total[1m]) > 100
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Unusual disk read latency (instance {{ $labels.instance }})"
+      description: "Disk latency is growing (read operations > 100ms)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: UnusualDiskWriteLatency
+    expr: rate(node_disk_write_time_seconds_total[1m]) / rate(node_disk_writes_completed_total[1m]) > 100
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Unusual disk write latency (instance {{ $labels.instance }})"
+      description: "Disk latency is growing (write operations > 100ms)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ContextSwitching
+    expr: rate(node_context_switches_total[5m]) > 1000
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Context switching (instance {{ $labels.instance }})"
+      description: "Context switching is growing on node (> 1000 / s)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: SwapIsFillingUp
+    expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100 > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Swap is filling up (instance {{ $labels.instance }})"
+      description: "Swap is filling up (>80%)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: SystemdServiceCrashed
+    expr: node_systemd_unit_state{state="failed"} == 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "SystemD service crashed (instance {{ $labels.instance }})"
+      description: "SystemD service crashed\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+
+- name: containers
+  rules:
+  - alert: container
+    expr: absent(container_memory_usage_bytes{job="cadvisor"})
+    for: 30s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Container down"
+      description: "Container {{ $labels.name }} in {{ $labels.instance }} is down for more than 30 seconds."
+
+  - alert: container_high_cpu
+    expr: sum(rate(container_cpu_usage_seconds_total{image!=""}[1m])) by (instance, name) * 100 > 200
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container high CPU usage"
+      description: "Container {{ $labels.name }} in {{ $labels.instance }} CPU usage is {{ humanize $value }}"
+
+  - alert: container_high_memory
+    expr: sum(container_memory_usage_bytes{image!=""}) by (instance, name) > 4e+9 # 4GB
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Conainer high memory"
+      description: "Container {{ $labels.name }} in {{ $labels.instance }} memory usage is {{ humanize $value }}"
+
+  - alert: ContainerKilled
+    expr: time() - container_last_seen > 60
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container killed (instance {{ $labels.instance }})"
+      description: "A container has disappeared\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ContainerVolumeUsage
+    expr: (1 - (sum(container_fs_inodes_free) BY (instance) / sum(container_fs_inodes_total) BY (instance)) * 100) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container Volume usage (instance {{ $labels.instance }})"
+      description: "Container Volume usage is above 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ContainerVolumeIoUsage
+    expr: (sum(container_fs_io_current) BY (instance, name) * 100) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Container Volume IO usage (instance {{ $labels.instance }})"
+      description: "Container Volume IO usage is above 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+- name: blackbox
+  rules:
+  - alert: ProbeFailed
+    expr: probe_success == 0
+    for: 5m
+    labels:
+      severity: error
+    annotations:
+      summary: "Probe failed (instance {{ $labels.instance }})"
+      description: "Probe failed\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: SlowProbe
+    expr: avg_over_time(probe_duration_seconds[1m]) > 1
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Slow probe (instance {{ $labels.instance }})"
+      description: "Blackbox probe took more than 1s to complete\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: HttpStatusCode
+    expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400
+    for: 2m
+    labels:
+      severity: error
+    annotations:
+      summary: "HTTP Status Code (instance {{ $labels.instance }})"
+      description: "HTTP status code is not 200-399\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: SslCertificateWillExpireSoon
+    expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "SSL certificate will expire soon (instance {{ $labels.instance }})"
+      description: "SSL certificate expires in 30 days\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: SslCertificateExpired
+    expr: probe_ssl_earliest_cert_expiry - time() <= 0
+    for: 5m
+    labels:
+      severity: error
+    annotations:
+      summary: "SSL certificate expired (instance {{ $labels.instance }})"
+      description: "SSL certificate has expired already\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: HttpSlowRequests
+    expr: avg_over_time(probe_http_duration_seconds[1m]) > 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "HTTP slow requests (instance {{ $labels.instance }})"
+      description: "HTTP request took more than 1s\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"

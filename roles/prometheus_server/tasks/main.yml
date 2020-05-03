@@ -1,0 +1,19 @@
+---  
+- include_tasks: prep.yml
+  when: "'prometheus_servers' in group_names"
+  tags:
+    - always
+
+- include_tasks: install.yml
+  when: "'prometheus_servers' in group_names"
+  tags:
+   - install_prometheus_server
+   - update_configs
+   - install_loki
+   - install_blackbox
+   - install_alerter
+
+- include_tasks: install_nginx.yml
+  when: "'prometheus_servers' in group_names"
+  tags:
+    - configure_nginx

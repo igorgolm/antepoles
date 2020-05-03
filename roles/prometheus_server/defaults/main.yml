@@ -1,0 +1,43 @@
+---
+docker_monitor_subnet: 172.23.0.0/16
+
+
+prometheus_img_ver: v2.15.2
+cadvisor_img_ver: v0.33.0 
+alertmanager_img_ver: v0.20.0
+karma_img_ver: v0.55
+blackbox_img_ver: v0.16.0
+
+prometheus_dir: /opt/prometheus
+prometheus_user: prometheus
+prometheus_user_group: prometheus
+prometheus_storage_retention: 15d
+
+prometheus_image: prom/prometheus:{{ prometheus_img_ver }}
+prometheus_container_name: prometheus-server
+prometheus_port: 9090
+
+cadvisor_image: google/cadvisor:{{ cadvisor_img_ver }}
+cadvisor_container_name: cadvisor
+cadvisor_port: 8080
+
+alertmanager_image: prom/alertmanager:{{ alertmanager_img_ver }}
+alertmanager_container_name: alertmanager
+alertmanager_port: 9093
+
+karma_image: lmierzwa/karma:{{ karma_img_ver }}
+karma_container_name: karma
+karma_dashboard_port: 5000
+
+blackbox_image: prom/blackbox-exporter:{{ blackbox_img_ver }}
+blackbox_image_name: blackbox-exporter
+blackbox_port: 9115
+
+loki_image: grafana/loki:master
+loki_image_name: loki
+
+nginx_user: www-data
+nginx_vhost_path: /etc/nginx/sites-available/default
+nginx_ssl_dir: /etc/nginx/ssl
+
+mattermost_webhook: https://mattermost.web.hook/Ka9s1nmALs01bc1857aALgq # Put here a real Mattermost webhook
