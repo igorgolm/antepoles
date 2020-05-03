@@ -1,0 +1,23 @@
+---
+- include_tasks: prep.yml
+  when: "'azure_agent_servers' in group_names"
+  tags:
+    - always
+
+- include_tasks: install_diba.yml
+  when: "'azure_agent_servers' in group_names"
+  loop: '{{ azure_agent_instances_diba }}'
+  tags:
+    - install_azure_agent_diba
+
+- include_tasks: install_backend.yml
+  when: "'azure_agent_servers' in group_names"
+  loop: '{{ azure_agent_instances_backend }}'
+  tags:
+    - install_azure_agent_backend
+
+- include_tasks: install_frontend.yml
+  when: "'azure_agent_servers' in group_names"
+  loop: '{{ azure_agent_instances_frontend }}'
+  tags:
+    - install_azure_agent_frontend

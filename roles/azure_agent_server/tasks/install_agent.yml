@@ -1,0 +1,20 @@
+---
+- name: "Download Azure archive and check checksum"
+  get_url:
+    url: 'https://{{ local_repo_server }}/repo/vsts-agent/vsts-agent-linux-x64-{{ azure_agent_version }}.tar.gz'
+    dest: '/tmp/vsts-agent-linux-x64-{{ azure_agent_version }}.tar.gz'
+    mode:  0760
+    checksum: '{{ azure_agent_package_checksum }}'
+  tags:
+    - always
+  
+- name: Extract azure-agent archive to into agent instances dirs
+  unarchive:
+    src: '/tmp/vsts-agent-linux-x64-{{ azure_agent_version }}.tar.gz'
+    dest: '{{ azure_agent_dir }}/{{ item }}'
+    owner: '{{ azure_agent_user }}'
+    group: '{{ azure_agent_group }}'
+    remote_src: yes
+    keep_newer: no
+  tags:
+    - always

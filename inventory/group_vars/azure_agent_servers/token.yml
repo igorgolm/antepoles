@@ -1,0 +1,3 @@
+---
+# NB! Dont forget to encrypt this file with ansible-vault
+azp_token: 1131321jdfh2nonosd

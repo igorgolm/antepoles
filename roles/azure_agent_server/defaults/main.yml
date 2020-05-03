@@ -1,0 +1,12 @@
+local_repo_server: you.repo.server
+
+azure_agent_version: 2.164.8
+azure_agent_package_checksum: "sha512:checksum"
+azure_agent_user: azure-agent
+azure_agent_group: azure-agent
+azure_agent_dir: /opt/agents
+azure_devops_url: 'https://your.azuredevops.server/COMPANY'
+
+backend_agent_pool: backend_build_pool
+build_docker_agent_pool: docker_image_build_pool
+frontend_agent_pool: frontend_build_pool

@@ -1,0 +1,10 @@
+---
+azure_agent_instances_diba:
+  - agent_instatnce_1
+  - agent_instatnce_2
+
+azure_agent_instances_backend:
+  - agent_instatnce_3
+
+azure_agent_instances_frontend:
+  - agent_instatnce_6

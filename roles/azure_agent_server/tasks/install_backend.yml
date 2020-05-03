@@ -1,0 +1,45 @@
+---
+- include_tasks: install_agent.yml
+  tags:
+    - install_azure_agent_backend
+
+- name: Check if Azure Agents were already configured
+  stat: 
+    path: '{{ azure_agent_dir }}/{{ item }}/.agent'
+  register: agent_config
+  tags:
+    - install_azure_agent_backend
+
+- debug:
+    msg: '{{ item }} - {{ agent_config.stat.exists }}'
+  tags:
+    - install_azure_agent_backend
+
+- name: Configure Azure Agents for backend builds
+  shell:
+    cmd: './config.sh --unattended --url {{ azure_devops_url }} --auth PAT --token {{ azp_token }} --pool {{ backend_agent_pool }} --agent {{ item }} --acceptTeeEula --sslskipcertvalidation'
+    chdir: '{{ azure_agent_dir }}/{{ item }}'
+  become: true
+  become_user: '{{ azure_agent_user }}'
+  when: agent_config.stat.exists == False
+  tags:
+    - install_azure_agent_backend
+
+- name: Check again if Azure Agents were already configured
+  stat: 
+    path: '{{ azure_agent_dir }}/{{ item }}/.agent'
+  register: agent_config
+  tags:
+    - install_azure_agent_backend
+
+- name: Install Azure Agents for backend-build builds as systemd service
+  shell:
+    cmd: './svc.sh install'
+    chdir: '{{ azure_agent_dir }}/{{ item }}'
+  when: agent_config.stat.exists == True
+
+- name: Start vsts.agent.azuredevops.{{ backend_agent_pool }}.{{ item }}
+  service:
+    name: vsts.agent.azuredevops.{{ backend_agent_pool }}.{{ item }}
+    state: restarted
+    enabled: no

@@ -1,0 +1,49 @@
+---
+- include_tasks: install_agent.yml
+  tags:
+    - install_azure_agent_frontend
+
+- name: Check if Azure Agents were already configured
+  stat: 
+    path: '{{ azure_agent_dir }}/{{ item }}/.agent'
+  register: agent_config
+  tags:
+    - install_azure_agent_frontend
+
+- debug:
+    msg: '{{ item }} - {{ agent_config.stat.exists }}'
+  tags:
+    - install_azure_agent_frontend
+
+- name: Configure Azure Agents for frontend builds
+  shell:
+    cmd: './config.sh --unattended --url {{ azure_devops_url }} --auth PAT --token {{ azp_token }} --pool {{ frontend_agent_pool }} --agent {{ item }} --acceptTeeEula --sslskipcertvalidation'
+    chdir: '{{ azure_agent_dir }}/{{ item }}'
+  become: true
+  become_user: '{{ azure_agent_user }}'
+  when: agent_config.stat.exists == False
+  tags:
+    - install_azure_agent_frontend
+
+- name: Check again if Azure Agents were already configured
+  stat: 
+    path: '{{ azure_agent_dir }}/{{ item }}/.agent'
+  register: agent_config
+  tags:
+    - install_azure_agent_frontend
+
+- name: Install Azure Agents for frontend-build builds as systemd service
+  shell:
+    cmd: './svc.sh install'
+    chdir: '{{ azure_agent_dir }}/{{ item }}'
+  when: agent_config.stat.exists == True
+  tags:
+    - install_azure_agent_frontend
+
+- name: Start vsts.agent.azuredevops.{{ frontend_agent_pool }}.{{ item }}
+  service:
+    name: vsts.agent.azuredevops.{{ frontend_agent_pool }}.{{ item }}
+    state: restarted
+    enabled: no
+  tags:
+    - install_azure_agent_frontend
