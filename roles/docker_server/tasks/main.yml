@@ -1,0 +1,26 @@
+---
+- include_tasks: install.yml
+  when: "'docker_servers' in group_names"
+  tags:
+   - install_docker
+
+- include_tasks: config.yml
+  when: "'docker_servers' in group_names"
+  tags:
+   - docker_conf
+
+- include_tasks: registry.yml
+  when: "'docker_registry_servers' in group_names"
+  tags:
+   - docker_registry
+  
+- include_tasks: compose.yml
+  when: "'docker_compose_servers' in group_names"
+  tags:
+   - docker_compose
+
+- include_tasks: nexus.yml
+  when: "'nexus_servers' in group_names"
+  tags:
+   - docker_nexus
+   - docker_nexus_monitor

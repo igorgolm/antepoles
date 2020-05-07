@@ -1,0 +1,29 @@
+docker_apt_repository: >
+  deb [arch=amd64]
+  https://download.docker.com/linux/{{ ansible_distribution | lower }}
+  {{ ansible_distribution_release }} {{ docker_channel | join (' ') }}
+docker_channel: ["stable"]
+docker_edition: "ce"
+docker_datadir: /docker
+
+docker_registry_port: 5000
+docker_registry_main_server: your.docker.registry
+
+docker_minio_port: 9000
+docker_minio_access_key: runnercache
+docker_minio_secret_key: runnercache
+docker_minio_datadir: /opt/docker/minio
+docker_minio_cache_bucket: runnercache
+
+docker_cleanup_script_dir: /opt/docker_cleanup
+
+docker_compose_path: /usr/local/bin/docker-compose
+docker_compose_version: 1.25.4
+
+nexus_docker_image_version: 3.22.0
+nexus_port: 8088
+nexus_docker_registry_port_http: 8083
+nexus_docker_system_user: 200
+nexus_data_dir: /opt/nexus
+
+nexus_exporter_port: 9184

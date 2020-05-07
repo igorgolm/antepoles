@@ -1,0 +1,48 @@
+---
+- name: Remove old Docker versions
+  apt:
+    name: '{{ item }}'
+    state: absent
+  with_items:
+    - docker
+    - docker-engine
+    - docker.io
+    - containerd
+    - runc
+  tags:
+    - install_docker
+
+- name: Update the repository cache and install packages for HTTPS using
+  apt:
+    name: '{{ item }}'
+    state: latest
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg2
+    - software-properties-common
+  tags:
+    - install_docker
+
+- name: Add Docker's official GPG key
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+  tags:
+    - install_docker
+
+- name: Configure Docker's upstream APT repository
+  apt_repository:
+    repo: '{{ docker_apt_repository }}'
+    update_cache: true
+  tags:
+    - install_docker
+
+- name: Install Docker
+  apt:
+    name: "docker-{{ docker_edition }}"
+    state: present
+  tags:
+    - install_docker

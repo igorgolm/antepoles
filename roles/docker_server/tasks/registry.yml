@@ -1,0 +1,63 @@
+---
+- include_vars: debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - docker_registry
+
+- name: Install a list of Debian packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - docker_registry
+
+- name: Run Docker registry container
+  docker_container:
+    exposed_ports: '{{ docker_registry_port }}'
+    image: 'registry:2'
+    name: registry
+    published_ports: '{{ docker_registry_port }}:{{ docker_registry_port }}'
+    pull: no
+    restart_policy: always
+    state: started
+  tags:
+    - docker_registry
+
+- name: Create Minio data directory
+  file:
+    path: '{{ docker_minio_datadir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags:
+    - docker_registry
+
+- name: Create Minio bucket
+  file:
+    path: '{{ docker_minio_datadir }}/{{ docker_minio_cache_bucket }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags:
+    - docker_registry
+
+# docker run -d -e "MINIO_ACCESS_KEY=runnercache" -e "MINIO_SECRET_KEY=runnercache" -v /mnt/data:/data --restart=always -p 9000:9000 minio/minio server /data
+# volumes does not support Ansible variables!
+- name: Run Minio container for build cache
+  docker_container:
+    exposed_ports: '{{ docker_minio_port }}'
+    image: 'minio/minio'
+    name: minio
+    published_ports: '{{ docker_minio_port }}:{{ docker_minio_port }}'
+    env:
+      MINIO_ACCESS_KEY: '{{ docker_minio_access_key }}'
+      MINIO_SECRET_KEY: '{{ docker_minio_secret_key }}'
+    volumes:
+      - /opt/docker/minio:/data
+    pull: no
+    restart_policy: no
+    state: started
+  tags:
+    - docker_registry

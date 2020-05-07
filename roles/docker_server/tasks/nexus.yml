@@ -1,0 +1,56 @@
+---
+- include_vars: debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - docker_nexus
+
+- name: Install a list of Debian packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - docker_nexus
+
+- name: Create Nexus data dir
+  file:
+    path: '{{ nexus_data_dir }}'
+    state: directory
+    owner: '{{ nexus_docker_system_user }}'
+    group: '{{ nexus_docker_system_user }}'
+    mode: 0750
+  tags:
+   - docker_nexus
+
+# volumes does not support Ansible variables!
+- name: Run Nexus container
+  docker_container:
+    image: sonatype/nexus3:{{ nexus_docker_image_version }}
+    name: nexus
+    published_ports: 
+      - '127.0.0.1:{{ nexus_port }}:8081'
+      - '127.0.0.1:{{ nexus_docker_registry_port_http }}:{{ nexus_docker_registry_port_http }}'
+    volumes:
+      - /opt/nexus:/nexus-data
+    pull: no
+    restart_policy: no
+    state: started
+  tags:
+    - docker_nexus
+
+# Nexus monitoring container (exporter)
+# NB! You need to build that image and add to your docker registry server (https://github.com/ocadotechnology/nexus-exporter)
+- name: Run Nexus monitoring container
+  docker_container:
+    image: you.docker.registry/nexus-exporter:latest
+    name: nexus_monitoring
+    env:
+      NEXUS_HOST: 'http://{{ inventory_hostname }}'
+      NEXUS_USERNAME: '{{ monitoring_username }}'
+      NEXUS_ADMIN_PASSWORD: '{{ monitoring_user_password }}'
+    published_ports: 
+      - '127.0.0.1:{{ nexus_exporter_port }}:{{ nexus_exporter_port }}'
+    pull: yes
+    restart_policy: no
+    state: started
+  tags:
+    - docker_nexus_monitor

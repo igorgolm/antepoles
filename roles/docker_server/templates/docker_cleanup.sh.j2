@@ -1,0 +1,39 @@
+#!/bin/bash
+
+DOCKERBIN="/usr/bin/docker"
+DATE=`date +%Y%m%d%H%M`
+DOCLOGDIR="{{ docker_cleanup_script_dir }}/logs"
+DOCLOGFILE="$DOCLOGDIR/cleanup.log"
+
+# Save disk usage output to logfile
+checkDiskUsage() {
+    if [ ! -d "$DOCLOGDIR" ]; then
+        mkdir $DOCLOGDIR
+    fi
+
+    if [ -f "$DOCLOGFILE" ]; then
+        cp $DOCLOGFILE $DOCLOGFILE-$DATE
+    else
+        touch $DOCLOGFILE
+    fi
+
+    $DOCKERBIN system df -v > $DOCLOGFILE
+}
+
+removeOldData() {
+    # Check, is there some space which could be reclaimed
+    RECSPACE=$(docker system df -v | grep "Local Volumes" | awk '{print $7}')
+
+    if [ RECSPACE != "(0%)" ]; then
+        $DOCKERBIN volume prune -f >> $DOCLOGFILE
+    fi
+}
+
+removeOldLogs() {
+    # Remove old log files
+    /usr/bin/find $DOCLOGDIR/* -mtime +1 -exec rm {} \;
+}
+
+checkDiskUsage
+removeOldData
+removeOldLogs
