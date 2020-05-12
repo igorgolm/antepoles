@@ -1,0 +1,120 @@
+---
+- include_vars: zabbix.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - install_zabbix_server
+
+- name: Install a list of packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - install_zabbix_server
+
+- name: Install docker-py via pip
+  pip:
+    executable: pip3
+    name: docker
+  tags:
+    - install_zabbix_server
+
+# Ansible docker module uses docker-compose as python library
+# so that docker-compose execuable file won't work in this case.
+# We have to install docker-compose via pip
+
+- name: Install docker-compose via pip
+  pip:
+    executable: pip3
+    name: docker-compose
+  tags:
+    - install_zabbix_server
+
+- name: Create Zabbix root directory
+  file:
+    path: '{{ zabbix_root_data_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_zabbix_server
+
+- name: Create Zabbix data directory
+  file:
+    path: '{{ zabbix_root_data_dir }}/zabbix_server'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_zabbix_server
+
+- name: Create Zabbix additional dirs
+  file:
+    path: '{{ zabbix_root_data_dir }}/zabbix_server/{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  with_items: '{{ zabbix_server_dirs }}'  
+  tags:
+    - install_zabbix_server
+
+- name: Create Web server configs directory
+  file:
+    path: '{{ zabbix_root_data_dir }}/nginx'
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - install_zabbix_server
+
+- name: Create Nginx additional dirs
+  file:
+    path: '{{ zabbix_root_data_dir }}/nginx/{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  with_items: '{{ nginx_dirs }}'  
+  tags:
+    - install_zabbix_server
+
+- name: Create Timescaledb directory
+  file:
+    path: '{{ zabbix_root_data_dir }}/timescaledb'
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - install_zabbix_server
+
+- name: Create Timescaledb additional dirs
+  file:
+    path: '{{ zabbix_root_data_dir }}/timescaledb/{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  with_items: '{{ timescaledb_dirs }}'  
+  tags:
+    - install_zabbix_server
+
+- name: Copy docker-compose file
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ zabbix_root_data_dir }}/docker-compose.yml"
+    mode: 0700
+    backup: yes
+  tags:
+    - install_zabbix_server
+  
+- name: Run docker-compose
+  docker_compose:
+    project_src: "{{ zabbix_root_data_dir }}"
+    state: present
+    recreate: "smart"
+  tags:
+    - install_zabbix_server

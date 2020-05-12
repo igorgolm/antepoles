@@ -1,0 +1,17 @@
+---
+- include_tasks: install.yml
+  when: "'zabbix_agent_servers' in group_names"
+  tags:
+   - install_zabbix_agent
+   - add_zabbix_host
+
+- include_tasks: cert.yml
+  when: "'zabbix_agent_servers' in group_names"
+  tags:
+   - install_zabbix_agent
+   - tls_conf
+
+- include_tasks: web_server.yml
+  when: "'kolt_servers' in group_names"
+  tags:
+   - kolt_server_config

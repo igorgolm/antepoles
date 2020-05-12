@@ -1,0 +1,92 @@
+---
+- include_vars: zabbix.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - install_zabbix_agent
+
+- name: Install Zabbix Agent2
+  apt:
+    deb: https://{{ nexus_repo_server }}/repository/file-localrepo/zabbix-agent/zabbix-agent2_{{ zabbix_agent_version }}-1+{{ ansible_distribution_release }}_amd64.deb
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - install_zabbix_agent
+
+- name: Create Zabbix Agent2 SSL directory
+  file:
+    path: /etc/zabbix/ssl
+    state: directory
+    owner: root
+    group: '{{ zabbix_user_group }}'
+    mode: 0750
+  tags:
+    - install_zabbix_agent
+
+- name: Create Zabbix Agent2 home directory
+  file:
+    path: '{{ zabbix_home_dir }}'
+    state: directory
+    owner: zabbix
+    group: '{{ zabbix_user_group }}'
+    mode: 0750
+  tags:
+    - install_zabbix_agent
+
+- name: Copy Zabbix Agent2 config file 
+  template:
+    src: zabbix_agent2.conf.j2
+    dest: '/etc/zabbix/zabbix_agent2.conf'
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - install_zabbix_agent
+
+# If server already added to Zabbix - do not try to add it or update, just skip
+- name: Get host info from Zabbix Server 
+  local_action:
+    module: zabbix_host_info
+    server_url: '{{ zabbix_server_url }}'
+    login_user: '{{ zabbix_api_user }}'
+    login_password: '{{ zabbix_api_user_password }}'
+    host_name: '{{ inventory_hostname }}'
+    timeout: 30
+    exact_match: yes
+    remove_duplicate: no
+  become: false 
+  ignore_errors: yes
+  register: search_result
+  tags:
+    - install_zabbix_agent
+
+# Added host with encrypted connection
+- name: Add new host to Zabbix Server
+  local_action:
+    module: zabbix_host
+    server_url: '{{ zabbix_server_url }}'
+    login_user: '{{ zabbix_api_user }}'
+    login_password: '{{ zabbix_api_user_password }}'
+    host_name: '{{ inventory_hostname }}'
+    visible_name: '{{ inventory_hostname }}'
+    host_groups:
+      - Discovered hosts
+    link_templates:
+      - Template Module ICMP Ping
+      - Template OS Linux by Zabbix agent active
+    status: enabled
+    state: present
+    inventory_mode: automatic
+    interfaces:
+      - type: 1
+        main: 1
+        useip: 1
+        ip: '{{ ansible_ssh_host }}'
+        dns: ""
+        port: 10050
+    tls_connect: 4
+    tls_accept: 4
+    timeout: 30
+  become: false 
+  when: "search_result.failed == true"
+  tags:
+   - install_zabbix_agent
+   - add_zabbix_host

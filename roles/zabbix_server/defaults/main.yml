@@ -1,0 +1,28 @@
+---
+zabbix_root_data_dir: /opt/docker
+
+zabbix_db_user: zabbix
+zabbix_tlscafile: 
+zabbix_tlscertfile:
+zabbix_tlskeyfile:
+
+cadvisor_img_ver: v0.33.0 
+cadvisor_image: google/cadvisor:{{ cadvisor_img_ver }}
+cadvisor_container_name: cadvisor
+cadvisor_port: 8080
+
+timescaledb_img_ver: latest-pg11
+timescaledb_image: timescale/timescaledb:{{ timescaledb_img_ver }}
+timescaledb_container_name: timescaledb
+timescaledb_port: 5432
+
+zabbix_sever_img_ver: alpine-4.4-latest
+zabbix_sever_image: zabbix/zabbix-server-pgsql:{{ zabbix_sever_img_ver }}
+zabbix_server_container_name: zabbix-server-pgsql
+zabbix_server_port: 10051
+
+zabbix_web_img_ver: alpine-4.4-latest
+zabbix_web_image: zabbix/zabbix-web-nginx-pgsql:{{ zabbix_sever_img_ver }}
+zabbix_web_container_name: zabbix-web-nginx-pgsql
+zabbix_web_http_port: 80
+zabbix_web_https_port: 443

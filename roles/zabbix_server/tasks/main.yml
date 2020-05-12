@@ -1,0 +1,5 @@
+---    
+- include_tasks: install.yml
+  when: "'zabbix_servers' in group_names"
+  tags:
+   - install_zabbix_server

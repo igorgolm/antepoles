@@ -1,0 +1,2 @@
+# NB! Dont forget to encrypt this file with ansible-vault
+promentheus_monitoring_user_password: superpassword!

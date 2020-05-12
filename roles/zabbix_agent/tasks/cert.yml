@@ -1,0 +1,34 @@
+---
+- name: Copy Zabbix Agent2 crt file
+  template:
+    src: certs/client.crt
+    dest: '{{ zabbix_dir }}/ssl/client.crt'
+    owner: root
+    group: '{{ zabbix_user_group }}'
+    mode: 0640
+  tags:
+    - install_zabbix_agent
+    - tls_conf
+
+- name: Copy Zabbix Agent2 key file
+  template:
+    src: certs/client.key
+    dest: '{{ zabbix_dir }}/ssl/client.key'
+    owner: root
+    group: '{{ zabbix_user_group }}'
+    mode: 0640
+  tags:
+    - install_zabbix_agent
+    - tls_conf
+
+- name: Copy Zabbix CA cert 
+  template:
+    src: certs/ca.pem
+    dest: '{{ zabbix_dir }}/ssl/ca.pem'
+    owner: root
+    group: '{{ zabbix_user_group }}'
+    mode: 0640
+  notify: restart zabbix-agent2
+  tags:
+    - install_zabbix_agent
+    - tls_conf

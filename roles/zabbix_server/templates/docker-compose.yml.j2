@@ -1,0 +1,206 @@
+version: "3.6"
+
+# Docker-compose versions 3+ does not support container resources limitations 
+
+networks:
+  zabbix-net:
+    driver: bridge
+
+services:
+  timescaledb:
+    image: {{ timescaledb_image }}
+    container_name: {{ timescaledb_container_name }}
+    user: root
+    restart: always
+    ports:
+     - "127.0.0.1:{{ timescaledb_port }}:{{ timescaledb_port }}"
+    volumes: 
+      - /etc/localtime:/etc/localtime:ro
+      - {{ zabbix_root_data_dir }}/timescaledb/data:/var/lib/postgresql/data:rw
+    environment:
+      - POSTGRES_USER={{ zabbix_db_user }}
+      - POSTGRES_PASSWORD={{ zabbix_db_password }}
+      - TS_TUNE_MEMORY=8GB
+      - TS_TUNE_NUM_CPUS=4 
+    stop_grace_period: 1m
+    networks:
+      - zabbix-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "128M"
+    deploy:
+     resources:
+      limits:
+        cpus: '0.70'
+        memory: 4G
+      reservations:
+        cpus: '0.5'
+        memory: 1G
+
+  zabbix-server-pgsql:
+    image: {{ zabbix_sever_image }}
+    container_name: {{ zabbix_server_container_name }}
+    restart: always
+    user: root
+    depends_on:
+     - {{ timescaledb_container_name }}
+    networks:
+      - zabbix-net
+    ports:
+     - "{{ zabbix_server_port }}:{{ zabbix_server_port }}"
+    volumes:
+     - /etc/localtime:/etc/localtime:ro
+     - /etc/timezone:/etc/timezone:ro
+     - {{ zabbix_root_data_dir }}/zabbix_server/alertscripts:/usr/lib/zabbix/alertscripts:ro
+     - {{ zabbix_root_data_dir }}/zabbix_server/externalscripts:/usr/lib/zabbix/externalscripts:ro
+     - {{ zabbix_root_data_dir }}/zabbix_server/modules:/var/lib/zabbix/modules:ro
+     - {{ zabbix_root_data_dir }}/zabbix_server/enc:/var/lib/zabbix/enc:ro
+     - {{ zabbix_root_data_dir }}/zabbix_server/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+     - {{ zabbix_root_data_dir }}/zabbix_server/mibs:/var/lib/zabbix/mibs:ro
+     - {{ zabbix_root_data_dir }}/zabbix_server/snmptraps:/var/lib/zabbix/snmptraps:ro
+    environment:
+     - ENABLE_TIMESCALEDB=true
+     - DB_SERVER_HOST=timescaledb
+     - POSTGRES_DB={{ zabbix_db_user }}
+     - POSTGRES_USER={{ zabbix_db_user }}
+     - POSTGRES_PASSWORD={{ zabbix_db_password }}
+     - DebugLevel=3
+     - HistoryStorageDateIndex=1
+     - ZBX_CACHESIZE=1024M
+     - ZBX_CACHEUPDATEFREQUENCY=60
+     - ZBX_STARTDBSYNCERS=2
+     - ZBX_HISTORYCACHESIZE=1024M
+     - ZBX_HISTORYINDEXCACHESIZE=512M
+     - ZBX_TRENDCACHESIZE=2046M
+     - ZBX_VALUECACHESIZE=2048M
+     - ZBX_TRAPPERTIMEOUT=30
+     - ZBX_ENABLE_SNMP_TRAPS="true"
+     - ZBX_UNREACHABLEPERIOD=120
+     - ZBX_UNAVAILABLEDELAY=80
+     - ZBX_STARTTRAPPERS=8
+     - ZBX_STARTPOLLERS=8
+     - ZBX_STARTPOLLERSUNREACHABLE=2
+     - ZBX_STARTPINGERS=4
+     - ZBX_STARTDISCOVERERS=2
+     - ZBX_STARTHTTPPOLLERS=4
+     - ZBX_HOUSEKEEPINGFREQUENCY=1
+     - ZBX_MAXHOUSEKEEPERDELETE=100000
+     - ZBX_TLSCAFILE={{ zabbix_tlscafile }}
+     - ZBX_TLSCERTFILE={{ zabbix_tlscertfile }}
+     - ZBX_TLSKEYFILE={{ zabbix_tlskeyfile }}
+    ulimits:
+     nproc: 65535
+     nofile:
+      soft: 20000
+      hard: 40000
+    deploy:
+     resources:
+      limits:
+        cpus: '0.70'
+        memory: 8G
+      reservations:
+        cpus: '0.5'
+        memory: 1G
+    user: root
+    sysctls:
+     - net.ipv4.ip_local_port_range=1024 65000
+     - net.ipv4.conf.all.accept_redirects=0
+     - net.ipv4.conf.all.secure_redirects=0
+     - net.ipv4.conf.all.send_redirects=0
+     - net.ipv4.tcp_fin_timeout=30
+     - net.ipv4.tcp_keepalive_time=1800
+     - net.core.somaxconn=65535
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "128M"
+
+  zabbix-snmptraps:
+    image: zabbix/zabbix-snmptraps:alpine-4.4-latest
+    container_name: zabbix-snmptraps
+    restart: always
+    depends_on:
+     - zabbix-server-pgsql
+    networks:
+      - zabbix-net
+    ports:
+      - 162:162/udp
+    volumes:
+      - {{ zabbix_root_data_dir }}/zabbix_server/snmptraps:/var/lib/zabbix/snmptraps:rw
+      - {{ zabbix_root_data_dir }}/zabbix_server/mibs:/var/lib/zabbix/mibs:ro
+    deploy:
+     resources:
+      limits:
+        cpus: '0.5'
+        memory: 1G
+      reservations:
+        cpus: '0.2'
+        memory: 100m
+    user: root
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "128M"
+
+  zabbix-web-nginx-pgsql:
+    image: {{ zabbix_web_image }}
+    container_name: {{ zabbix_web_container_name }}
+    restart: always
+    depends_on:
+     - {{ timescaledb_container_name }}
+     - {{ zabbix_server_container_name }}
+    networks:
+      - zabbix-net
+    ports:
+     - "{{ zabbix_web_http_port }}:{{ zabbix_web_http_port }}"
+     - "{{ zabbix_web_https_port }}:{{ zabbix_web_https_port }}"
+    environment:
+     - ENABLE_TIMESCALEDB=true
+     - DB_SERVER_HOST={{ timescaledb_container_name }}
+     - POSTGRES_DB={{ zabbix_db_user }}
+     - POSTGRES_USER={{ zabbix_db_user }}
+     - POSTGRES_PASSWORD={{ zabbix_db_password }}
+     - ZBX_SERVER_HOST={{ zabbix_server_container_name }}
+     - PHP_TZ="Europe/Tallinn"
+    volumes:
+     - /etc/localtime:/etc/localtime:ro
+     - /etc/timezone:/etc/timezone:ro
+     - {{ zabbix_root_data_dir }}/nginx/ssl:/etc/ssl/nginx:ro
+     - {{ zabbix_root_data_dir }}/graphfont.ttf:/usr/share/zabbix/assets/fonts/DejaVuSans.ttf
+    deploy:
+     resources:
+      limits:
+        cpus: '0.70'
+        memory: 1G
+      reservations:
+        cpus: '0.5'
+        memory: 256M
+    user: root
+    healthcheck:
+     test: ["CMD", "curl", "-f", "http://localhost"]
+     interval: 10s
+     timeout: 5s
+     retries: 3
+     start_period: 30s
+    sysctls:
+     - net.core.somaxconn=65535
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "128M"
+
+#  cadvisor:
+#    image: {{ cadvisor_image }}
+#    container_name: {{ cadvisor_container_name }}
+#    volumes:
+#      - /:/rootfs:ro
+#      - /var/run:/var/run:rw
+#      - /sys:/sys:ro
+#      - /var/lib/docker/:/var/lib/docker:ro
+#      - /cgroup:/cgroup:ro
+#    restart: unless-stopped
+#    ports:
+#      - 127.0.0.1:{{ cadvisor_port }}:{{ cadvisor_port }}
+#    networks:
+#      - zabbix-net

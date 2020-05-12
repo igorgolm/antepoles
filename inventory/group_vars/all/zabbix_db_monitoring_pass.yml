@@ -1,0 +1,2 @@
+# NB! Dont forget to encrypt this file with ansible-vault
+zabbix_db_monitoring_password: supper_password!

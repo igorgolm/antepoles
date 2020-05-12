@@ -1,0 +1,22 @@
+---
+packages:
+  - python3-pip
+  - apache2-utils
+  - python-setuptools
+  - python-docker
+  - rsync
+
+zabbix_server_dirs:
+  - alertscripts
+  - externalscripts
+  - modules
+  - mibs
+  - ssh_keys
+  - snmptraps
+  - enc
+
+nginx_dirs:
+  - ssl
+
+timescaledb_dirs:
+  - data

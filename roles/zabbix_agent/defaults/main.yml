@@ -1,0 +1,10 @@
+---
+zabbix_agent_version: 4.4.6
+
+zabbix_server_url: http://zabbix.host.name/
+zabbix_dir: /etc/zabbix
+zabbix_home_dir: /var/lib/zabbix
+zabbix_user_group: zabbix
+zabbix_db_monitoring_user: monitoring
+
+snmp_host_port: 161

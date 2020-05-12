@@ -1,0 +1,84 @@
+---
+- name: Create Zabbix Agent2 home directory
+  file:
+    path: '{{ zabbix_home_dir }}'
+    state: directory
+    owner: zabbix
+    group: '{{ zabbix_user_group }}'
+    mode: 0750
+  tags:
+    - kolt_server_config
+
+- name: Copy MySQL userparameters for Zabbix Agent2
+  template:
+    src: mysql/template_db_mysql.conf.j2
+    dest: '{{ zabbix_dir }}/zabbix_agent2.d/template_db_mysql.conf'
+    owner: root
+    group: '{{ zabbix_user_group }}'
+    mode: 0640
+  tags:
+   - kolt_server_config
+
+- name: Check if Zabbix monitoring user was added to database server
+  command: mysql -uroot --execute "SELECT user,host from mysql.user where user='{{ zabbix_db_monitoring_user }}';"
+  register: monuser
+  tags:
+   - kolt_server_config
+
+- name: Add Zabbix monitoring user to database server
+  command: mysql -uroot --execute "CREATE USER '{{ zabbix_db_monitoring_user }}'@'localhost' identified by '{{ zabbix_db_monitoring_password }}'; GRANT USAGE,REPLICATION CLIENT,PROCESS,SHOW DATABASES,SHOW VIEW ON *.* TO '{{ zabbix_db_monitoring_user }}'@'localhost';"
+  when: monuser.stdout == ""
+  tags:
+   - kolt_server_config
+
+- name: Copy MySQL credentials for Zabbix Agent2
+  template:
+    src: mysql/my.cnf.j2
+    dest: '{{ zabbix_home_dir }}/.my.cnf'
+    owner: zabbix
+    group: '{{ zabbix_user_group }}'
+    mode: 0600
+  notify: restart zabbix-agent2
+  tags:
+   - kolt_server_config
+
+- name: Copy Nginx status page 
+  template:
+    src: nginx/status.conf.j2
+    dest: /etc/nginx/sites-available/status.conf
+    owner: www-data
+    group: www-data
+    mode: 0644
+  tags:
+   - kolt_server_config
+
+- name: Create a symbolic for status page
+  file:
+    src: /etc/nginx/sites-available/status.conf
+    dest: /etc/nginx/sites-enabled/status.conf
+    owner: www-data
+    group: www-data
+    state: link
+  tags:
+   - kolt_server_config
+
+- name: Check NGINX configs
+  shell: "nginx -t -c /etc/nginx/nginx.conf"
+  register: nginx_config_status
+  tags:
+   - kolt_server_config
+
+- name: NGINX test status
+  debug:
+    msg: "{{ nginx_config_status }}"
+  tags:
+   - kolt_server_config
+  
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
+  when: nginx_config_status.rc == 0
+  tags:
+   - kolt_server_config
