@@ -1,0 +1,137 @@
+---
+- include_vars: graylog.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - install_graylog_server
+
+- name: Install a list of packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - install_graylog_server
+
+- name: Install docker-py via pip
+  pip:
+    executable: pip3
+    name: docker
+  tags:
+    - install_graylog_server
+
+# Ansible docker module uses docker-compose as python library
+# so that docker-compose execuable file won't work in this case.
+# We have to install docker-compose via pip
+
+- name: Install docker-compose via pip
+  pip:
+    executable: pip3
+    name: docker-compose
+  tags:
+    - install_graylog_server
+
+- name: Create Graylog root directory
+  file:
+    path: '{{ graylog_root_data_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server
+
+- name: Create Graylog config directory
+  file:
+    path: '{{ graylog_root_data_dir }}/graylog'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server
+
+- name: Create Graylog SSL directory
+  file:
+    path: '{{ graylog_root_data_dir }}/graylog/ssl'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server
+
+- name: Create Graylog Web SSL directory
+  file:
+    path: '{{ graylog_root_data_dir }}/graylog/webssl'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server
+
+- name: Create Graylog data directory
+  file:
+    path: '{{ graylog_root_data_dir }}/graylog/data'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server
+
+- name: Create Graylog journal directory
+  file:
+    path: '{{ graylog_root_data_dir }}/graylog/data/journal'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server    
+
+- name: Create Elasticsearch data dicrectory
+  file:
+    path: '{{ graylog_root_data_dir }}/elasticsearchdata'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server
+
+- name: Create Elasticsearch SSL dicrectory
+  file:
+    path: '{{ graylog_root_data_dir }}/elasticsearchdata/ssl'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server
+
+- name: Create MongoDB data dicrectory
+  file:
+    path: '{{ graylog_root_data_dir }}/mongodb'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_graylog_server
+
+- name: Copy docker-compose file
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ graylog_root_data_dir }}/docker-compose.yml"
+    mode: 0600
+    backup: yes
+  tags:
+    - install_graylog_server
+  
+- name: Run docker-compose
+  docker_compose:
+    project_src: "{{ graylog_root_data_dir }}"
+    state: present
+    recreate: "smart"
+  tags:
+    - install_graylog_server

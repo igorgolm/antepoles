@@ -1,0 +1,7 @@
+---
+packages:
+  - python3-pip
+  - python-setuptools
+  - python-docker
+  - rsync
+  - docker-compose

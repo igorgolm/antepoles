@@ -1,0 +1,7 @@
+---    
+# NB! Playbok is not tested!
+
+- include_tasks: install.yml
+  when: "'graylog_servers' in group_names"
+  tags:
+   - install_graylog_server
