@@ -12,3 +12,6 @@ ghost.host.name
 
 [zabbix_agent_servers:children] 
 azure_agent_servers 
+
+[node_exporter_servers:children]
+azure_agent_servers

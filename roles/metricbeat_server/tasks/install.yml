@@ -1,0 +1,51 @@
+---
+
+- name: "Download Metricbeat dep package and check checksum"
+  get_url:
+    url: 'https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-{{ metricbeat_version }}-amd64.deb'
+    dest: '/tmp/metricbeat-{{ metricbeat_version }}-amd64.deb'
+    mode: 0700
+    checksum: "{{ metricbeat_package_checksum }}"
+  tags:
+    - install_metricbeat
+
+- name: Install Metricbeat
+  apt: 
+    deb: '/tmp/metricbeat-{{ metricbeat_version }}-amd64.deb'
+  tags:
+    - install_metricbeat
+
+- name: Create SSL cert directory
+  file:
+    path: '{{ monitor_ssl_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_metricbeat
+    - install_config
+
+- name: Copy Metricbeat config to server
+  template:
+    src: metricbeat.yml.j2
+    dest: /etc/metricbeat/metricbeat.yml
+    owner:  root
+    group: root
+    mode: 0600
+    backup: yes
+  tags:
+    - install_metricbeat
+    - install_config
+  
+- name: Copy Metricbeat System module config to server
+  template:
+    src: system.yml.j2
+    dest: /etc/metricbeat/modules.d/system.yml
+    owner:  root
+    group: root
+    mode: 0600
+  notify: restart metricbeat
+  tags:
+   - install_metricbeat
+   - install_config

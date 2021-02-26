@@ -1,0 +1,4 @@
+metricbeat_version: 7.4.0
+elasticsearch_default_port: 9200
+metricbeat_package_checksum: "sha512:e404d89e02a57a5cde8a8adca6c2527532abbcf9aa649b801ab62ccf738cd6fc71c87d6a10a4b987410799b89c65920f944cb22f5b19ba380db198e3094b81eb"
+metricbeat_ssl_dir: /etc/metricbeat/ssl

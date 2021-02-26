@@ -1,0 +1,5 @@
+---    
+- include_tasks: install.yml
+  when: "'node_exporter_servers' in group_names"
+  tags:
+   - install_node_exporter

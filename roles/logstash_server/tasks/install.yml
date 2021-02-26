@@ -1,0 +1,85 @@
+---
+- include_vars: debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - install_logstash
+
+- name: Install a list of packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - install_logstash
+
+- name: "Download Logstash dep package and check checksum"
+  get_url:
+    url: 'https://artifacts.elastic.co/downloads/logstash/logstash-{{ logstash_version }}.deb'
+    dest: '/tmp/logstash-{{ logstash_version }}.deb'
+    mode: '700'
+    checksum: "{{ logstash_deb_package_checksum }}"
+  tags:
+    - install_logstash
+
+- name: Install Logstash
+  apt: 
+    deb: '/tmp/logstash-{{ logstash_version }}.deb'
+  tags:
+    - install_logstash
+
+- name: Create Logstash data directory
+  file:
+    path: '{{ logstash_data_dir }}'
+    state: directory
+    owner: '{{ logstash_user }}'
+    group: '{{ logstash_group }}'
+    mode: '0700'
+  tags:
+    - install_logstash
+
+- name: Create Logstash SSL cert directory
+  file:
+    path: '{{ logstash_ssl_dir }}'
+    state: directory
+    owner: root
+    group: '{{ logstash_group }}'
+    mode: '0750'
+  tags:
+    - install_logstash
+    - install_config
+
+- name: Copy Logstash config to server
+  template:
+    src: logstash.yml.j2
+    dest: /etc/logstash/logstash.yml
+    owner:  root
+    group: '{{ logstash_group }}'
+    mode: '0660'
+    backup: yes
+  tags:
+    - install_logstash
+    - install_config
+
+- name: Copy Logstash i/o config to server
+  template:
+    src: logstash.conf.j2
+    dest: /etc/logstash/conf.d/logstash.conf
+    owner:  root
+    group: '{{ logstash_group }}'
+    mode: '0660'
+    backup: yes
+  notify: restart logstash
+  tags:
+    - install_logstash
+    - install_config
+  
+- name: Copy Metricbeat index template to server
+  template:
+    src: metricbeat-template.json.j2
+    dest: /etc/logstash/conf.d/metricbeat-template.json
+    owner:  root
+    group: '{{ logstash_group }}'
+    mode: '0660'
+    backup: yes
+  tags:
+    - install_logstash
+    - install_config

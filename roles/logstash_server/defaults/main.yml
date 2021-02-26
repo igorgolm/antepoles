@@ -1,0 +1,8 @@
+logstash_version: 7.4.0
+logstash_data_dir: /logstashdata
+logstash_log_dir: /var/log/logstash
+logstash_user: logstash
+logstash_group: logstash
+logstash_deb_package_checksum: "sha512:62cbdfd8c55b95e536e05aaae7a1f17da7ce46ff7c6f499874eedab1ad143039aabfa1d178537f70244acf34298d4ebb7fa8255baf2ef8f397385e81109be6a1"
+ssl_script_dir: /opt/ssl_checker
+logstash_ssl_dir: /etc/logstash/ssl

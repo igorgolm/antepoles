@@ -1,0 +1,2 @@
+elasticsearch_default_host: '{{ inverntory_hostname }}'
+elasticsearch_default_port: 9200

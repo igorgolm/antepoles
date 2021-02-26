@@ -1,0 +1,102 @@
+---
+- name: Add the group for Prometheus user
+  user:
+    name: '{{ prometheus_user_group }}'
+    state: present
+  tags:
+    - install_node_exporter
+
+- name: Add the user for Prometheus
+  user:
+    name: '{{ prometheus_user }}'
+    comment: Prometheus user
+    shell: /bin/false
+    groups: '{{ prometheus_user_group }}'
+  tags:
+    - install_node_exporter
+
+- name: Check whether the node exporter has already been installed
+  stat:
+    path: "/usr/local/bin/node_exporter"
+    checksum_algorithm: "{{ node_exporter_checksum_algorithm }}"
+  register: "bin"
+  tags:
+    - install_node_exporter
+
+- name: Fetch the archive from Nexus repo
+  get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+    dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+    checksum: "{{ node_exporter_checksum_algorithm }}:{{ node_exporter_checksum_archive }}"
+  when: bin.stat.exists == False or
+        bin.stat.checksum != node_exporter_checksum_binary
+  tags:
+    - install_node_exporter
+
+- name: Unpack the archive in /tmp
+  unarchive:
+    remote_src: true
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+    dest: "/tmp"
+  when: bin.stat.exists == False or
+        bin.stat.checksum != node_exporter_checksum_binary
+  tags:
+    - install_node_exporter
+
+- name: "Move node-exporter to the /usr/local/bin/node-exporter"
+  copy:
+    remote_src: true
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}/node_exporter"
+    dest: "/usr/local/bin/node_exporter"
+    owner: '{{ prometheus_user }}'
+    group: root
+    mode: 0755
+  when: bin.stat.exists == False or
+        bin.stat.checksum != node_exporter_checksum_binary
+  notify: restart node_exporter
+  tags:
+    - install_node_exporter
+
+- name: Create the systemd service for node_exporter (Debian 9)
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: '{{ prometheus_user}}'
+    group: root
+    mode: 0640
+  when: ansible_distribution == 'Debian' and ansible_distribution_release == 'stretch'
+  notify: restart node_exporter
+  tags:
+    - install_node_exporter
+
+- name: Create the systemd service for node_exporter (Debian 10)
+  template:
+    src: node_exporter.service.j2
+    dest: /lib/systemd/system/node_exporter.service
+    owner: '{{ prometheus_user}}'
+    group: root
+    mode: 0640
+  when: ansible_distribution == 'Debian' and ansible_distribution_release == 'buster'
+  notify: restart node_exporter
+  tags:
+    - install_node_exporter
+
+- name: Make sure node exporter service is running and auto-starting
+  service:
+    name: node_exporter
+    state: started
+    enabled: yes
+  tags:
+    - install_node_exporter
+
+- name: "Clean the /tmp dir up"
+  file:
+    path: "{{ item }}"
+    state: "absent"
+  with_items:
+    - "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+    - "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}/"
+  when: bin.stat.exists == False or
+        bin.stat.checksum != node_exporter_checksum_binary
+  tags:
+    - install_node_exporter

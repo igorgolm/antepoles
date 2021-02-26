@@ -1,0 +1,11 @@
+---
+- include_tasks: install.yml
+  when: "'test_elasticsearch_servers' in group_names"
+  tags:
+    - install_logstash
+    - install_config
+
+- include_tasks: ssl_monitoring.yml
+  when: "'test_elasticsearch_servers' in group_names"
+  tags:
+    - install_ssl_monitoring

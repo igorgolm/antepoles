@@ -1,0 +1,29 @@
+---
+node_exporter_port: 8091
+prometheus_user: prometheus
+prometheus_user_group: prometheus
+node_exporter_version: "0.18.1"
+node_exporter_arch: "amd64"
+node_exporter_checksum_algorithm: "sha512"
+node_exporter_checksum_binary: "0835a813784400118953df3f4cbe121363795850b9f199b9754fd6a625601f81258a6af58306b966ab2f30e5833839421bb1a44d1a4233e32942b2cca1f33135"
+node_exporter_checksum_archive: "ec82d4f4000d54db629220190e1c80f97bdf1455d42ef038bf51c429e4da1a89871d8941b608b5b512e51614f43ce3e5986bcaea6b673ea081814690c8afbc40"
+
+# These are the default exporters that are enabled as of v0.14.0. To get a list of the available exporters, run
+# $ path/to/node_exporter -collectors.print
+node_exporter_exporters:
+  - "filesystem"
+  - "stat"
+  - "diskstats"
+  - "edac"
+  - "infiniband"
+  - "meminfo"
+  - "netdev"
+  - "entropy"
+  - "filefd"
+  - "sockstat"
+  - "time"
+  - "uname"
+  - "vmstat"
+  - "conntrack"
+  - "loadavg"
+  - "netstat"

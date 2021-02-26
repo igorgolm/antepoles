@@ -1,0 +1,19 @@
+[Unit]
+Description=The Prometheus Dode Exporter service
+After=network-online.target
+StartLimitInterval=0
+
+[Service]
+User={{ prometheus_user }}
+Group={{ prometheus_user_group }}
+
+ExecStart=/usr/local/bin/node_exporter \
+    --web.listen-address=127.0.0.1:{{ node_exporter_port }} \
+  {% for col in node_exporter_exporters %} --collector.{{ col }} {% endfor %}
+
+
+SyslogIdentifier=node_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

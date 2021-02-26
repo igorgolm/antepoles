@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+  when: "'test_metricbeat_servers' in group_names"
+  tags:
+   - install_metricbeat
+   - install_config

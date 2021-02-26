@@ -1,0 +1,25 @@
+# Sample Logstash configuration for creating a simple
+# Beats/File -> Logstash -> Elasticsearch pipeline.
+# NB! input beats -> wotks for all beats (Metricbeat, Heartbeat etc)
+
+input {
+  beats {
+    type => "beats_events"
+    port => 5044
+    ssl => true
+    ssl_key => '{{ logstash_ssl_dir }}/{{ inverntory_hostname }}.pkcs8.key'
+    ssl_certificate => '{{ logstash_ssl_dir }}/{{ inverntory_hostname }}.crt'
+  }
+}
+
+# Output data to Elasticsearch
+
+output {
+    if [type] == "beats_events" {
+       elasticsearch {
+          hosts => ["https://{{ inverntory_hostname }}:{{ elasticsearch_default_port }}"]
+          cacert => '{{ logstash_ssl_dir }}/ca.crt'
+          index => "%{[@metadata][beat]}-%{[@metadata][version]}"
+	        }
+        }
+}
