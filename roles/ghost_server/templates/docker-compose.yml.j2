@@ -1,0 +1,54 @@
+version: "3.6"
+
+networks:
+  app-net:
+    driver: bridge
+
+services:
+  nginx:
+    image: {{ nginx_image }}
+    container_name: {{ nginx_container_name }}
+    restart: always
+    ports:
+      - "{{ nginx_http_container_port }}:{{ nginx_http_container_port }}"
+      - "{{ nginx_registry_container_port }}:{{ nginx_registry_container_port }}"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d:ro
+      - ./nginx/auth:/opt/auth:ro
+    networks:
+      - app-net
+    links:
+      - ghost
+
+  ghost:
+    image: {{ ghost_image }}
+    container_name: {{ ghost_container_name }}
+    hostname: {{ ghost_container_name }}
+    volumes:
+      - ./ghost/config.production.json:/var/lib/ghost/config.production.json
+      - ./ghost/content:/var/lib/ghost/content
+    environment:
+      - NODE_ENV=production
+    expose:
+      - {{ ghost_container_port }}
+    restart: always
+    links:
+      - mysql
+    networks:
+      - app-net
+
+  mysql:
+    image: {{ mysql_image }}
+    container_name: {{ mysql_container_name }}
+    volumes:
+       - ./mysql/dbdata:/var/lib/mysql
+    ports:
+      - "127.0.0.1:{{ mysql_container_port }}:{{ mysql_container_port }}"
+    environment:
+      - MYSQL_ROOT_PASSWORD={{ mysql_root_password }}
+      - MYSQL_DATABASE={{ mysql_database }}
+      - MYSQL_USER={{ mysql_user }}
+      - MYSQL_PASSWORD={{ mysql_password }}
+    restart: always
+    networks:
+      - app-net

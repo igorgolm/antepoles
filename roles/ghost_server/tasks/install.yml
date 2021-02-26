@@ -1,0 +1,80 @@
+---
+- name: Create Ghost root directory
+  file:
+    path: '{{ ghost_root_data_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_ghost_server
+
+- name: Create Ghost config directory
+  file:
+    path: '{{ ghost_root_data_dir }}/ghost'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_ghost_server
+
+- name: Create Ghost content directory
+  file:
+    path: '{{ ghost_root_data_dir }}/ghost/content'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_ghost_server
+
+- name: Create MySQL data directory
+  file:
+    path: '{{ ghost_root_data_dir }}/mysql/dbdata'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_ghost_server
+
+- name: Create Nginx conf directory
+  file:
+    path: '{{ ghost_root_data_dir }}/nginx/conf'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_ghost_server
+
+- name: Copy Nginx conf file
+  template:
+    src: "app.conf.j2"
+    dest: "{{ ghost_root_data_dir }}/nginx/conf/app.conf"
+    mode: 0600
+    backup: yes
+  tags:
+    - install_graylog_server
+    - update_nginx_conf
+
+- name: Copy Ghost conf file
+  template:
+    src: "config.production.json.j2"
+    dest: "{{ ghost_root_data_dir }}/ghost/config.production.json"
+    mode: 0600
+    backup: yes
+  tags:
+    - install_graylog_server
+    - update_ghost_conf
+
+- name: Copy docker-compose file
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ ghost_root_data_dir }}/docker-compose.yml"
+    mode: 0600
+    backup: yes
+  tags:
+    - install_graylog_server
+    - update_ghost_conf

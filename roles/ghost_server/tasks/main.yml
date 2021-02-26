@@ -1,0 +1,7 @@
+---    
+- include_tasks: install.yml
+  when: "'ghost_servers' in group_names"
+  tags:
+    - install_ghost_server
+    - update_ghost_conf
+    - update_nginx_conf

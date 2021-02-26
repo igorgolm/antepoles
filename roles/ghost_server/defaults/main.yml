@@ -1,0 +1,18 @@
+---
+ghost_root_data_dir: /opt/docker
+
+nginx_img_ver: 1.15-alpine
+nginx_image: nginx:{{ nginx_img_ver }}
+nginx_container_name: nginx
+nginx_http_container_port: 80
+nginx_registry_container_port: 8080
+
+ghost_img_ver: latest
+ghost_image: ghost:{{ ghost_img_ver }}
+ghost_container_name: ghost
+ghost_container_port: 2368
+
+mysql_img_ver: 5.7.33
+mysql_image: mysql:{{ mysql_img_ver }}
+mysql_container_name: mysql
+mysql_container_port: 3306

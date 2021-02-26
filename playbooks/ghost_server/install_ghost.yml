@@ -1,0 +1,4 @@
+---
+- hosts: "{{ nodes }}"
+  roles: 
+     - ghost_server

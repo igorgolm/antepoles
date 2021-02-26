@@ -1,0 +1,43 @@
+---
+{
+    "url": "{{ ghost_url }}",
+    "server": {
+        "port": {{ ghost_container_port }},
+        "host": "0.0.0.0"
+    },
+    "database": {
+        "client": "mysql",
+        "connection": {
+            "host": "{{ mysql_container_name }}",
+            "port": {{ mysql_container_port }},
+            "user": "{{ mysql_user }}",
+            "password": "{{ mysql_password }}",
+            "database": "{{ mysql_database }}",
+            "charset": "utf8mb4"
+        }
+    },
+    "mail": {
+        "from": "'Ghost'",
+        "transport": "SMTP",
+        "logger": true,
+        "options": {
+            "host": "{{ ghost_smtp_host }}",
+	    "port": {{ ghost_smtp_port }},
+            "secureConnection": true,
+            "auth": {
+                "user": "{{ ghost_smtp_user }}",
+                "pass": "{{ ghost_smtp_password }}"
+            }
+        }
+    },
+    "logging": {
+        "transports": [
+            "file",
+            "stdout"
+        ]
+    },
+    "process": "systemd",
+    "paths": {
+        "contentPath": "/var/lib/ghost/content"
+    }
+}

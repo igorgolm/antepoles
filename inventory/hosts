@@ -1,0 +1,14 @@
+[nexus_servers]
+nexusserver.host.name
+
+[azure_agent_servers]
+azureagent.host.name
+
+[graylog_servers]
+graylog.host.name
+
+[ghost_servers]
+ghost.host.name
+
+[zabbix_agent_servers:children] 
+azure_agent_servers 
