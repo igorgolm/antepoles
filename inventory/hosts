@@ -15,3 +15,9 @@ azure_agent_servers
 
 [node_exporter_servers:children]
 azure_agent_servers
+
+[heartbeat_servers]
+webapp.host.name
+
+[app_servers]
+webapp.host.name

@@ -1,0 +1,4 @@
+heartbeat_version: 7.4.0
+heartbeat_package_checksum: "sha512:f96b7a14f3ae03626c781b45f4c71d802e9759bf99313ef3f03ba66ebef6b1215941d9fe34073486399e504f3c8cb23bb1f128ba58c256cb64e7e07f727c4630"
+heartbeat_ssl_dir: /etc/heartbeat/ssl
+heartbeat_monitors_dir: /etc/heartbeat/monitors.d

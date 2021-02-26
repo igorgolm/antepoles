@@ -1,0 +1,39 @@
+---
+
+- name: "Download Heartbeat dep package and check checksum"
+  get_url:
+    url: 'https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-{{ heartbeat_version }}-amd64.deb'
+    dest: '/tmp/heartbeat-{{ heartbeat_version }}-amd64.deb'
+    mode: '700'
+    checksum: "{{ heartbeat_package_checksum }}"
+  tags:
+    - install_heartbeat
+
+- name: Install Heartbeat
+  apt: 
+    deb: '/tmp/heartbeat-{{ heartbeat_version }}-amd64.deb'
+  tags:
+    - install_heartbeat
+
+- name: Create Heartbeat SSL cert directory
+  file:
+    path: '{{ monitor_ssl_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+  tags:
+    - install_heartbeat
+    - install_config
+
+- name: Copy Heartbeat config to server
+  template:
+    src: heartbeat.yml.j2
+    dest: /etc/heartbeat/heartbeat.yml
+    owner:  root
+    group: root
+    mode: '0600'
+    backup: yes
+  tags:
+    - install_heartbeat
+    - install_config

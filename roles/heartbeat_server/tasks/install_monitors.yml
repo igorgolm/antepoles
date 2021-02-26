@@ -1,0 +1,12 @@
+---
+- name: Copy APP tcp check rule
+  template:
+    src: monitors/app.tcp.yml.j2
+    dest: '{{ heartbeat_monitors_dir }}/app.tcp.yml'
+    owner: root
+    group: root
+    mode: '0600'
+  notify: restart heartbeat
+  when: "'app_servers' in group_names"
+  tags:
+    - install_monitors

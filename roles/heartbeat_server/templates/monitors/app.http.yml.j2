@@ -1,0 +1,34 @@
+# These files contain a list of monitor configurations identical
+# to the heartbeat.monitors section in heartbeat.yml
+# The .example extension on this file must be removed for it to
+# be loaded.
+
+- type: http
+
+  # Monitor name used for job name and document type
+  name: app_http_responce 
+
+  # Enable/Disable monitor
+  enabled: true
+
+  # Configure task schedule
+  schedule: '@every 30s' # every 5 seconds from start of beat
+
+  # Configure URLs to ping
+  urls: ["https://localhost"]
+
+  # Configure IP protocol types to ping on if hostnames are configured.
+  # Ping all resolvable IPs if `mode` is `all`, or only one IP if `mode` is `any`.
+  ipv4: true
+
+  # Total test connection and data exchange timeout
+  timeout: 15s
+
+  # Disable TLS verification
+  verification_mode: none
+
+  # Expected response settings
+  check.response:
+    # Expected status code. If not configured or set to 0 any status code not
+    # being 404 is accepted.
+    status: 200

@@ -1,0 +1,2 @@
+logstash_default_host: test-elasticsearch-node1
+logstash_default_port: 5044

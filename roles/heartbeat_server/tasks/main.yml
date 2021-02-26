@@ -1,0 +1,11 @@
+---
+- include_tasks: install.yml
+  when: "'heartbeat_servers' in group_names"
+  tags:
+   - install_heartbeat
+   - install_config
+
+- include_tasks: install_monitors.yml
+  when: "'heartbeat_servers' in group_names"
+  tags:
+   - install_heartbeat_monitors
