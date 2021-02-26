@@ -1,0 +1,4 @@
+---
+- hosts: "{{ nodes }}"
+  roles: 
+   - kibana_server

@@ -1,0 +1,7 @@
+kibana_version: 7.4.0
+kibana_default_port: 5601
+kibana_package_checksum: "sha512:f91f2614f4545a2d239d76eb1d3bb1a94d161c2a2cc85a8cbb6d263072c21b150cfd8655e3fcf563735e82101b6ace28e5db0f5e1995f67674c2b87e356067df"
+kibana_user: kibana
+kibana_group: kibana
+kibana_ssl_dir: /etc/kibana/ssl
+kibana_log_dir: /var/log/kibana

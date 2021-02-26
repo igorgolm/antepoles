@@ -1,0 +1,57 @@
+---
+- name: "Download Kibana dep package and check checksum"
+  get_url:
+    url: 'https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana_version }}-amd64.deb'
+    dest: '/tmp/kibana-{{ kibana_version }}-amd64.deb'
+    mode: '700'
+    checksum: "{{ kibana_package_checksum }}"
+  tags:
+    - install_kibana
+
+- name: Install Kibana
+  apt: 
+    deb: '/tmp/kibana-{{ kibana_version }}-amd64.deb'
+  tags:
+    - install_kibana
+
+- name: Create Kibana ssl directory
+  file:
+    path: '{{ kibana_ssl_dir }}'
+    state: directory
+    owner: root
+    group: '{{ kibana_group }}'
+    mode: '0750'
+  tags:
+    - install_kibana
+
+- name: Create Kibana log directory
+  file:
+    path: '{{ kibana_log_dir }}'
+    state: directory
+    owner: '{{ kibana_user }}'
+    group: '{{ kibana_group }}'
+    mode: '0740'
+  tags:
+    - install_kibana
+
+- name: Create Kibana log file
+  file:
+    path: '{{ kibana_log_dir }}/kibana.log'
+    state: file
+    owner: '{{ kibana_user }}'
+    group: '{{ kibana_group }}'
+    mode: '0640'
+  tags:
+    - install_kibana
+
+- name: Copy Kibana config to server
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner:  '{{ kibana_user }}'
+    group: '{{ kibana_group }}'
+    mode: '0644'
+  notify: restart kibana
+  tags:
+    - install_kibana
+    - install_config

@@ -1,0 +1,2 @@
+elasticsearch_default_host: 127.0.0.1
+elasticsearch_default_port: 9200
