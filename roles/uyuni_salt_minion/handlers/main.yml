@@ -1,0 +1,12 @@
+---
+- name: salt_minion_restart systemd
+  systemd:
+    name: salt-minion
+    state: restarted
+    enabled: yes
+
+- name: salt_minion_restart init
+  service:
+    name: salt-minion
+    state: restarted
+    enabled: yes

@@ -1,0 +1,13 @@
+---
+- name: Remove old salt-minion
+  yum: 
+    name: 
+      - salt
+      - salt-minion
+      - python2-msgpack
+      - python2-crypto
+      - python-zmq
+      - zeromq
+    state: absent
+  tags:
+    - remove_salt_minion

@@ -1,0 +1,9 @@
+[SUSE-Manager-Bootstrap]
+autorefresh=1
+{% if 'test_uyuni_proxy_host_servers' in group_names or 'prod_uyuni_proxy_host_servers' in group_names %}
+baseurl=http://{{ uyuni_proxy_host_salt_master }}/pub/repositories/opensuse/15/2/bootstrap/
+{% else %}
+baseurl=http://{{ uyuni_salt_master }}/pub/repositories/opensuse/15/2/bootstrap/
+{% endif %}
+gpgcheck=0
+enabled=1

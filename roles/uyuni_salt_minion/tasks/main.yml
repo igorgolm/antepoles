@@ -1,0 +1,21 @@
+---
+- name: Load OS dependent variables
+  include_vars: "{{ ansible_distribution }}.yml"
+  tags:
+   - always
+
+- include: remove_minion.yml
+  tags:
+    - remove_minion
+
+- include: install-CentOS.yml
+  when: "ansible_distribution == 'CentOS'"
+
+- include: install-RedHat.yml
+  when: "ansible_distribution == 'RedHat'"
+
+- include: install-Ubuntu.yml
+  when: "ansible_distribution == 'Ubuntu'"
+
+- include: install-Suse.yml
+  when: "ansible_distribution == 'openSUSE Leap'"

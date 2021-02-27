@@ -1,0 +1,77 @@
+---
+- name: Check if Uyuni Bootstrap repo is already added
+  stat:
+    path: /etc/zypp/repos.d/susemanager_bootstrap_leap_15_2.repo
+  register: salt_repo
+
+- name: Copy Uyuni Bootstrap repo file
+  template:
+    src: susemanager_bootstrap_leap_15_2.repo.j2
+    dest: /etc/zypp/repos.d/susemanager_bootstrap_leap_15_2.repo
+    mode: 0644
+  when: salt_repo.stat.exists == False
+
+- name: Remove openSUSE-Leap-15.2-1 repo
+  file:
+    state: absent
+    path: "/etc/zypp/repos.d/openSUSE-Leap-15.2-1.repo"
+
+- name: Delete old machine-id file
+  file:
+    path: /etc/machine-id
+    state: absent
+  tags:
+    - install_salt_minion
+
+- name: Generate new machine-id
+  shell: systemd-machine-id-setup
+
+- name: Install salt-minion
+  zypper: 
+    name: salt-minion
+    state: present
+    update_cache: yes
+  tags:
+    - install_salt_minion
+
+- name: Check that old Salt master public key exists
+  stat:
+    path: /etc/salt/pki/minion/minion_master.pub
+  register: oldmaster_key_result
+  tags:
+    - update_salt_conf
+
+- name: Delete old Salt master public key
+  file:
+    path: /etc/salt/pki/minion/minion_master.pub
+    state: absent
+  when: oldmaster_key_result.stat.exists
+  tags:
+    - update_salt_conf
+
+- name: Copy salt-minion config files
+  template:
+    src: salt-minion.conf.j2
+    dest: /etc/salt/minion
+    mode: 0644
+  notify: salt_minion_restart systemd
+  tags:
+    - update_salt_conf
+
+- name: Copy salt-minion Uyuni config
+  template:
+    src: susemanager.conf.j2
+    dest: /etc/salt/minion.d/susemanager.conf
+    mode: 0644
+  notify: salt_minion_restart systemd
+  tags:
+    - update_salt_conf
+
+- name: Copy salt-minion static grains conf
+  template:
+    src: grains.j2
+    dest: /etc/salt/grains
+    mode: 0644
+  notify: salt_minion_restart systemd
+  tags:
+    - update_salt_conf

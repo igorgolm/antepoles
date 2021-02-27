@@ -30,3 +30,6 @@ elasticsearch.host.name
 
 [ejbca_servers]
 ejbca.host.name
+
+[nexus_servers]
+nexus.host.name

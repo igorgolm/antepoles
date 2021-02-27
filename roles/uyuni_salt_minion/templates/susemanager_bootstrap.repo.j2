@@ -1,0 +1,14 @@
+[SUSE-Manager-Bootstrap]
+name=SUSE-Manager-Bootstrap
+type=rpm-md
+baseurl=http://{{ uyuni_salt_master }}/pub/repositories/centos/{{ ansible_distribution_major_version }}/bootstrap/
+gpgcheck=0
+enabled=1
+keeppackages=0
+sslverify=0
+{% if ansible_distribution_major_version < "8" %}
+autorefresh=1
+{% endif %}
+{% if ansible_distribution_major_version == "8" %}
+module_hotfixes=1
+{% endif %}

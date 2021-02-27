@@ -1,0 +1,19 @@
+{% if 'k8s_servers' in group_names %}
+roles:
+  - k8s_server
+{% elif 'security_servers' in group_names %}
+roles:
+  - security_server
+{% elif 'insight_servers' in group_names %}
+roles:
+  - insight_server
+{% elif 'zabbix_servers' in group_names %}
+roles:
+  - zabbix_server
+{% elif 'gitlab_servers' in group_names %}
+roles:
+  - gitlab_server
+{% else %}
+roles:
+  - default_server
+{% endif %}

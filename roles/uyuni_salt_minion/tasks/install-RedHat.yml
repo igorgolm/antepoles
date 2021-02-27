@@ -1,0 +1,93 @@
+---
+- name: Check if Uyuni Bootstrap repo is already added
+  stat:
+    path: /etc/yum/susemanager:bootstrap.repo
+  register: salt_repo
+
+- name: Copy Uyuni Bootstrap repo file
+  template:
+    src: susemanager_bootstrap.repo.j2
+    dest: /etc/yum.repos.d/susemanager:bootstrap.repo
+    mode: 0644
+  when: salt_repo.stat.exists == False
+
+- name: Delete old machine-id file on RedHat 6
+  file:
+    path: /var/lib/dbus/machine-id
+    state: absent
+  when: ansible_distribution_major_version == '6'
+
+- name: Generate new machine-id on RedHat 6
+  shell: dbus-uuidgen --ensure
+  when: ansible_distribution_major_version == '6'
+
+- name: Delete old machine-id file on RedHat 7 or 8
+  file:
+    path: /etc/machine-id
+    state: absent
+  when: ansible_distribution_major_version >= '7'
+
+- name: Generate new machine-id on RedHat 7 or 8
+  shell: systemd-machine-id-setup
+  when: ansible_distribution_major_version >= '7'
+
+#- name: Disable all repos
+#  command: "sed -i -e 's/enabled=1/enabled=0/g' /etc/yum.repos.d/*repo*"
+
+- name: Clean yum cache
+  command: yum clean all
+
+- name: Install salt-minion
+  yum: 
+    name: salt-minion
+    state: present
+    update_cache: yes
+    enablerepo: "SUSE-Manager-Bootstrap"
+    disablerepo: "*"
+
+- name: Check that old Salt master public key exists
+  stat:
+    path: /etc/salt/pki/minion/minion_master.pub
+  register: oldmaster_key_result
+
+- name: Delete old Salt master public key
+  file:
+    path: /etc/salt/pki/minion/minion_master.pub
+    state: absent
+  when: oldmaster_key_result.stat.exists
+
+- name: Copy salt-minion config files
+  template:
+    src: salt-minion.conf.j2
+    dest: /etc/salt/minion
+    mode: 0644
+  notify: salt_minion_restart systemd
+  when: ansible_distribution_major_version >= '7'
+
+- name: Copy salt-minion config files
+  template:
+    src: salt-minion.conf.j2
+    dest: /etc/salt/minion
+    mode: 0644
+  notify: salt_minion_restart init
+  when: ansible_distribution_major_version >= '6'
+
+- name: Copy salt-minion static grains conf
+  template:
+    src: grains.j2
+    dest: /etc/salt/grains
+    mode: 0644
+  notify: salt_minion_restart init
+  tags:
+    - update_salt_conf
+
+- name: Check that rhnplugin file exists
+  stat:
+    path: /etc/yum/pluginconf.d/rhnplugin.conf
+  register: rhnplugin_file_result
+
+- name: Delete rhnplugin for YUM
+  file:
+    path: /etc/yum/pluginconf.d/rhnplugin.conf
+    state: absent
+  when: rhnplugin_file_result.stat.exists

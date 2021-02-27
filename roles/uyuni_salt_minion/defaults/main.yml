@@ -1,0 +1,2 @@
+---
+minion_id: "{{ inventory_hostname }}"

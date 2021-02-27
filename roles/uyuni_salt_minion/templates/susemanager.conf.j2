@@ -1,0 +1,27 @@
+master: {{ uyuni_salt_master }}
+server_id_use_crc: adler32
+enable_legacy_startup_events: False
+enable_fqdns_grains: False
+
+grains:
+  susemanager:
+{% if ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'%}
+    activation_key: 1-CentOS6x86_64
+{% elif ansible_distribution == 'CentOS' and ansible_distribution_major_version == '8'%}
+    activation_key: 1-CentOS8x86_64
+{% elif ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7' %}
+    activation_key: 1-CentOS7x86_64
+{% elif ansible_distribution == 'Ubuntu' and ansible_distribution_version == '18.04' %}
+    activation_key: 1-Ubuntu18.04_AMD64
+{% elif ansible_distribution == 'Ubuntu' and ansible_distribution_version == '20.04' %}
+    activation_key: 1-Ubuntu20.04_AMD64
+{% elif ansible_distribution == 'Ubuntu' and ansible_distribution_version == '16.04' %}
+    activation_key: 1-Ubuntu16.04_AMD64
+{% elif ansible_distribution == 'openSUSE Leap' %}
+    activation_key: 1-OpenSUSE_Leap_15.2
+{% endif %}
+
+start_event_grains:
+  - machine_id
+  - saltboot_initrd
+  - susemanager
