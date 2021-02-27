@@ -1,0 +1,57 @@
+---
+- name: Create Elasticsearch certs directory
+  file:
+    path: '{{ elasticsearch_ssl_dir }}/certs'
+    state: directory
+    owner: root
+    group: '{{ elasticsearch_group }}'
+    mode: '0750'
+  tags:
+    - install_ssl
+
+- name: Check that CA exists 
+  stat:
+    path: '{{ elasticsearch_ssl_dir }}/certs/ca/CA.p12'
+  register: ca_result
+  tags:
+    - install_ssl
+    - install_elasticsearch
+    - install_CA
+
+- name: Generate Elasticsearch SSL CA
+  command: '{{ elasticsearch_binaries_dir }}/bin/elasticsearch-certutil ca --out {{ elasticsearch_ssl_dir }}/certs/ca/CA.p12'
+  when: ca_result.stat.exists == False 
+  tags:
+    - install_ssl
+    - install_elasticsearch
+    - install_CA
+
+- name: Create Elasticsearch SSL certs for hosts from instance.yml file
+  command: '{{ elasticsearch_binaries_dir }}/bin/elasticsearch-certutil cert --pem --ca {{ elasticsearch_ssl_dir }}/certs/ca/CA.p12 --in {{ elasticsearch_ssl_dir }}/instances.yml --out {{ elasticsearch_ssl_dir }}/certs.zip'
+  tags:
+    - install_ssl
+    - install_elasticsearch
+    - install_CA
+
+- name: Extract certs.zip into certs directory
+  unarchive:
+    src: '{{ elasticsearch_ssl_dir }}/certs.zip'
+    dest: '{{ elasticsearch_ssl_dir }}/certs'
+    remote_src: yes
+  tags:
+    - install_ssl
+    - install_elasticsearch
+    - install_CA
+
+- name: Change certs directory owner
+  file:
+    path: '{{ elasticsearch_ssl_dir }}/certs'
+    state: directory
+    owner: root
+    group: '{{ elasticsearch_group }}'
+    mode: 0750
+    recurse: yes
+  tags:
+    - install_ssl
+    - install_elasticsearch
+    - install_CA

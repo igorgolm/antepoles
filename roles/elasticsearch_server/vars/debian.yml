@@ -1,0 +1,4 @@
+packages:
+ - unzip
+ - wget
+ - curl

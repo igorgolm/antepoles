@@ -1,0 +1,19 @@
+---
+- include_tasks: install.yml
+  when: "'elasticsearch_servers' in group_names"
+  tags:
+    - install_elasticsearch
+    - install_config
+    - install_CA
+
+- include_tasks: install_utils.yml
+  when: "'elasticsearch_servers' in group_names"
+  tags:
+   - install_binaries
+  
+- include_tasks: create_certs.yml
+  when: "'elasticsearch_servers' in group_names"
+  tags:
+   - install_elasticsearch
+   - install_ssl
+   - install_CA

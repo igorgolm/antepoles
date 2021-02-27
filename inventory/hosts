@@ -24,3 +24,6 @@ webapp.host.name
 
 [filebeat_servers]
 webapp.host.name
+
+[elasticsearch_servers]
+elasticsearch.host.name

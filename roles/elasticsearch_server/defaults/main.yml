@@ -1,0 +1,9 @@
+elasticsearch_version: 7.4.0
+elasticsearch_data_dir: /opt/graylog
+elasticsearch_log_dir: /var/log/elasticsearch
+elasticsearch_ssl_dir:  /etc/elasticsearch/ssl
+elasticsearch_user: elasticsearch
+elasticsearch_group: elasticsearch
+elasticsearch_binaries_dir: /opt/elasticsearch-{{ elasticsearch_version }}
+elasticsearch_deb_package_checksum: "sha512:e0b6035c494cf71d1753bc0d71476d37a7929049e2d1b04fe9c5dc40479d5c5dfc389d2885622c52065a3db3f13767996aa44ddec7ef425dd2d0a80630bbbfbb"
+elasticsearch_tarball_checksum: "sha512:bfd96df61f8b745dce2e665dfe326f021ffdf080853aa02ca7d4bc2f5e40b949fe566fe6aacc628580b8ca421866b86eeb2f694b14b08f47ebb9e1350d18ecc3"

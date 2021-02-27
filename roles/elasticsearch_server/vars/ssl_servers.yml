@@ -1,0 +1,3 @@
+---
+hosts:
+ - { name: '{{ inventory_hostname }}', dns: '{{ inventory_hostname }}' }

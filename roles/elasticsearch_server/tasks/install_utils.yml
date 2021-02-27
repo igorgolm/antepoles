@@ -1,0 +1,36 @@
+---
+
+- name: "Download Elasticsearch binaries and check checksum"
+  get_url:
+    url: 'https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz'
+    dest: '/tmp/elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz'
+    mode: '700'
+    checksum: "{{ elasticsearch_tarball_checksum }}"
+  tags:
+    - install_binaries
+
+- name: Create Elasticsearch binaries directory
+  file:
+    path: '{{ elasticsearch_binaries_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  tags:
+    - install_binaries
+
+- name: Untar Elasticsearch binaries to dir
+  unarchive:
+    src: '/tmp/elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz'
+    dest: '{{ elasticsearch_binaries_dir }}'
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+  tags:
+    - install_binaries
+
+- name: Remove Elasticsearch binaries archive
+  file:
+    state: absent
+    path: "/tmp/elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
+  tags:
+    - install_binaries
