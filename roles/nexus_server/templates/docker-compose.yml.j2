@@ -1,0 +1,35 @@
+version: "3.6"
+
+networks:
+  nexus-net:
+    driver: bridge
+
+services:
+  nginx:
+    image: {{ nginx_image }}
+    container_name: {{ nginx_container_name }}
+    restart: always
+    ports:
+      - "{{ nginx_http_container_port }}:{{ nginx_http_container_port }}"
+      - "{{ nginx_https_container_port }}:{{ nginx_https_container_port }}"
+      - "{{ nginx_registry_container_port }}:{{ nginx_registry_container_port }}"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d:ro
+    networks:
+      - app-net
+    links:
+      - ghost
+
+  nexus:
+    user: root
+    container_name: {{ nexus_container_name }}
+    image: {{ nexus_image }}
+    volumes:
+      - '{{ nexus_root_data_dir }}/nexus:/nexus-data:rw'
+    ports:
+      - '127.0.0.1:{{ nexus_port }}:8081'
+      - '127.0.0.1:{{ nexus_docker_registry_port_http }}:{{ nexus_docker_registry_port_http }}'
+    environment:
+      TZ: Europe/Tallinn
+    networks:
+      - nexus-net

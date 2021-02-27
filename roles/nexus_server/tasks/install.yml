@@ -1,0 +1,70 @@
+- include_vars: debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - install_nexus_server
+
+- name: Install a list of Debian packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - install_nexus_server
+
+- name: Create Nexus root dir
+  file:
+    path: '{{ nexus_root_data_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+   - install_nexus_server
+
+- name: Create Nexus data dir
+  file:
+    path: '{{ nexus_root_data_dir }}/nexus'
+    state: directory
+    owner: '{{ nexus_docker_system_user }}'
+    group: '{{ nexus_docker_system_user }}'
+    mode: 0750
+  tags:
+   - install_nexus_server
+
+- name: Create Nginx conf directory
+  file:
+    path: '{{ nexus_root_data_dir }}/nginx/conf'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_nexus_server
+
+- name: Copy Nginx HTTP conf files
+  template:
+    src: "nexus.conf.j2"
+    dest: "{{ nexus_root_data_dir }}/nginx/conf/nexus.conf"
+    mode: 0600
+    backup: yes
+  tags:
+    - install_nexus_server
+    - update_nginx_conf
+
+- name: Copy Nginx Registry conf files
+  template:
+    src: "nexus_registry.conf.j2"
+    dest: "{{ nexus_root_data_dir }}/nginx/conf/nexus_registry.conf"
+    mode: 0600
+    backup: yes
+  tags:
+    - install_nexus_server
+    - update_nginx_conf
+
+- name: Copy docker-compose file
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ nexus_root_data_dir }}/docker-compose.yml"
+    mode: 0700
+    backup: yes
+  tags:
+    - install_nexus_server

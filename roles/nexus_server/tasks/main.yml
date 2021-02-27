@@ -1,0 +1,6 @@
+---    
+- include_tasks: install.yml
+  when: "'nexus_servers' in group_names"
+  tags:
+   - install_nexus_server
+   - update_nginx_conf

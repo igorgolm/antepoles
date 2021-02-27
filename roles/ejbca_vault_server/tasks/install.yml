@@ -112,11 +112,3 @@
     backup: yes
   tags:
     - install_ejbca_server
-  
-- name: Run docker-compose
-  docker_compose:
-    project_src: "{{ ejbca_root_data_dir }}"
-    state: present
-    recreate: "smart"
-  tags:
-    - install_ejbca_server
