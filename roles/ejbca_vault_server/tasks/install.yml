@@ -1,0 +1,122 @@
+---
+- include_vars: ejbca.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - install_ejbca_server
+
+- name: Install a list of packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - install_ejbca_server
+
+- name: Create EJBCA root directory
+  file:
+    path: '{{ ejbca_root_data_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_ejbca_server
+
+- name: Create EJBCA data directory
+  file:
+    path: '{{ ejbca_root_data_dir }}/ejbca'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - install_ejbca_server
+
+- name: Create EJBCA additional dirs
+  file:
+    path: '{{ ejbca_root_data_dir }}/ejbca/{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  with_items: '{{ ejbca_server_dirs }}'  
+  tags:
+    - install_ejbca_server
+
+- name: Create Vault configs directory
+  file:
+    path: '{{ ejbca_root_data_dir }}/vault'
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - install_ejbca_server
+
+- name: Create Vault additional dirs
+  file:
+    path: '{{ ejbca_root_data_dir }}/vault/{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  with_items: '{{ vault_dirs }}'  
+  tags:
+    - install_ejbca_server
+
+- name: Copy Vault config
+  template:
+    src: vault.json.j2
+    dest: '{{ ejbca_root_data_dir }}/vault/config/vault.json'
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - install_ejbca_server
+
+- name: Create MariaDB configs directory
+  file:
+    path: '{{ ejbca_root_data_dir }}/mariadb'
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - install_ejbca_server
+
+- name: Create MariaDB additional dirs
+  file:
+    path: '{{ ejbca_root_data_dir }}/mariadb/{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  with_items: '{{ mariadb_dirs }}'  
+  tags:
+    - install_ejbca_server
+
+- name: Copy MariaDB root credentials
+  template:
+    src: mysql.root.j2
+    dest: '{{ ejbca_root_data_dir }}/mariadb/secrets/mysql.root'
+    owner: root
+    group: root
+    mode: 600
+  tags:
+    - install_ejbca_server
+
+- name: Copy docker-compose file
+  template:
+    src: "docker-compose.yml.j2"
+    dest: "{{ ejbca_root_data_dir }}/docker-compose.yml"
+    mode: 0700
+    backup: yes
+  tags:
+    - install_ejbca_server
+  
+- name: Run docker-compose
+  docker_compose:
+    project_src: "{{ ejbca_root_data_dir }}"
+    state: present
+    recreate: "smart"
+  tags:
+    - install_ejbca_server

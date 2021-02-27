@@ -1,0 +1,5 @@
+---    
+- include_tasks: install.yml
+  when: "'ejbca_servers' in group_names"
+  tags:
+   - install_ejbca_server

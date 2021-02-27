@@ -27,3 +27,6 @@ webapp.host.name
 
 [elasticsearch_servers]
 elasticsearch.host.name
+
+[ejbca_servers]
+ejbca.host.name

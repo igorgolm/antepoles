@@ -1,0 +1,22 @@
+---
+packages:
+  - python3-pip
+  - apache2-utils
+  - python-setuptools
+  - python-docker
+  - rsync
+
+ejbca_server_dirs:
+  - data
+  - mysql
+  - syslog-ng
+
+mariadb_dirs:
+  - data
+  - rsyslog
+  - rsyslog
+
+vault_dirs:
+  - file
+  - logs
+  - config

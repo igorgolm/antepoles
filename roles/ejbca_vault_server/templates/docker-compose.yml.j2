@@ -1,0 +1,62 @@
+version: "3.6"
+
+networks:
+  ejbca-net:
+    driver: bridge
+
+services:
+  ejbca:
+    user: root
+    image: {{ ejbca_image }}
+    container_name: {{ ejbca_container_name }}
+    volumes:
+      - '{{ ejbca_root_data_dir }}/ejbca/syslog-ng:/etc/syslog-ng/conf.d'
+      - '{{ ejbca_root_data_dir }}/ejbca/mysql:/var/lib/mysql'
+      - '{{ ejbca_root_data_dir }}/ejbca/data:/var/lib/ejbca'
+    environment:
+      TZ: Europe/Tallinn
+      DATABASE_JDBC_URL: jdbc:mysql://{{ mariadb_container_name }}:{{ mariadb_server_port }}/ejbca
+      DATABASE_USER: ejbca
+      DATABASE_PASSWORD: {{ ebjca_db_password }}
+    networks:
+      - ejbca-net
+    ports:
+      - 80:{{ ejbca_http_port }}
+      - 442:{{ ejbca_api_port }}
+      - 443:{{ ejbca_https_port }}
+
+  mariadb:
+    user: root
+    container_name: {{ mariadb_container_name }}
+    image: {{ mariadb_image }}
+    volumes:
+      - '{{ ejbca_root_data_dir }}/mariadb/data:/var/lib/mysql:rw'
+      - '{{ ejbca_root_data_dir }}/mariadb/secrets:/run/secrets:rw'
+    ports:
+      - '127.0.0.1:{{ mariadb_server_port }}:{{ mariadb_server_port }}'
+    environment:
+      TZ: Europe/Tallinn
+      MYSQL_DATA_DIR: /var/lib/mysql
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql.root
+      MYSQL_ROOT_ALLOWED_HOSTS: "%"
+    networks:
+      - ejbca-net
+  
+  # Just for test
+  vault:
+    user: root
+    image: {{ vault_image }}
+    container_name: {{ vault_container_name }}
+    ports:
+      - '{{ vault_server_port }}:{{ vault_server_port }}'
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - '{{ ejbca_root_data_dir }}/vault/logs:/vault/logs'
+      - .'{{ ejbca_root_data_dir }}/vault/file:/vault/file'
+      - '{{ ejbca_root_data_dir }}/vault/config:/vault/config'
+    healthcheck:
+      retries: 5
+    entrypoint: vault server -config=/vault/config/vault.json
+    networks:
+      - ejbca-net
