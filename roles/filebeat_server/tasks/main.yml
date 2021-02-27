@@ -1,0 +1,12 @@
+---
+- include_tasks: graylog_sidecar.yml
+  when: "'filebeat_servers' in group_names"
+  tags:
+   - install_graylog_sidecar
+   - remove_sidecar_repo
+
+- include_tasks: install.yml
+  when: "'filebeat_servers' in group_names"
+  tags:
+   - install_filebeat
+   - install_config

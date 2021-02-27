@@ -1,0 +1,3 @@
+graylog_default_host: graylog.host.name
+graylog_default_port: 5044
+graylog_web_port: 9000

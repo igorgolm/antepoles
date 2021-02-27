@@ -1,0 +1,6 @@
+filebeat_version: 7.4.2
+filebeat_package_checksum: "sha512:35a93d8d3b2cd801ec88cddfb7edbe6c54a77f1c6ca4de69018ea96ea1b9fef880fe9eb9a378f51b814faa2a92cf9971a9516f2aca5cb475642c4f648b52abd4"
+filebeat_ssl_dir: /etc/filebeat/ssl
+
+graylog_sidecar_ver: 1.0.2-1
+graylog_sidecar_package_checksum: "sha512:0c2cb0acd83dfe8dbd4c80295c70cf277178afb91b262071ca118b426d862b4c13fe032cbae500c51d250a90440ead897846a52b3445ac42725b68cc60fd3794"

@@ -21,3 +21,6 @@ webapp.host.name
 
 [app_servers]
 webapp.host.name
+
+[filebeat_servers]
+webapp.host.name

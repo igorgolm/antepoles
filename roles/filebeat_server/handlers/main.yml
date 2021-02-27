@@ -1,0 +1,6 @@
+---
+- name: restart graylog-sidecar
+  service:
+    name: graylog-sidecar
+    state: restarted
+    enabled: yes

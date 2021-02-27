@@ -1,0 +1,4 @@
+---
+packages:
+  - apt-transport-https
+  - python-apt

@@ -1,0 +1,71 @@
+---
+- name: "Download Filebeat dep package and check checksum"
+  get_url:
+    url: 'https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{{ filebeat_version }}-amd64.deb'
+    dest: '/tmp/filebeat-{{ filebeat_version }}-amd64.deb'
+    mode: 0700
+    checksum: "{{ filebeat_package_checksum }}"
+  tags:
+    - install_filebeat
+
+- name: Install Filebeat
+  apt: 
+    deb: '/tmp/filebeat-{{ filebeat_version }}-amd64.deb'
+  tags:
+    - install_filebeat
+
+- name: Create SSL cert directory
+  file:
+    path: '{{ filebeat_ssl_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+  tags:
+    - install_filebeat
+    - install_config
+
+- name: Copy CA cert to server
+  template:
+    src: certs/ca.crt
+    dest: '{{ filebeat_ssl_dir }}/ca.crt'
+    owner:  root
+    group: root
+    mode: '0600'
+  tags:
+    - install_filebeat
+    - install_config
+
+- name: Copy client cert to server
+  template:
+    src: certs/client.crt
+    dest: '{{ filebeat_ssl_dir }}/client.crt'
+    owner:  root
+    group: root
+    mode: '0600'
+  tags:
+    - install_filebeat
+    - install_config
+
+- name: Copy client key to server
+  template:
+    src: certs/client.key
+    dest: '{{ filebeat_ssl_dir }}/client.key'
+    owner:  root
+    group: root
+    mode: '0600'
+  tags:
+    - install_filebeat
+    - install_config
+
+- name: Stop Filebeat and disable from startup
+  service:
+    name: filebeat
+    state: stopped
+    enabled: no
+
+- name: restart graylog-sidecar
+  service:
+    name: graylog-sidecar
+    state: restarted
+    enabled: yes
