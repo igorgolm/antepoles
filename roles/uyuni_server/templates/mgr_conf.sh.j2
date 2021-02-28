@@ -1,0 +1,67 @@
+#!/usr/bin/expect
+
+set MANAGER_USER [lindex $argv 0]
+set MANAGER_PASS [lindex $argv 1]
+set MANAGER_ADMIN_EMAIL [lindex $argv 2]
+set CERT_CNAMES [lindex $argv 3]
+set CERT_O [lindex $argv 4]
+set CERT_OU [lindex $argv 5]
+set CERT_CITY [lindex $argv 6]
+set CERT_STATE [lindex $argv 7]
+set CERT_COUNTRY [lindex $argv 8]
+set CERT_EMAIL [lindex $argv 9]
+set LOCAL_DB [lindex $argv 10]
+set DB_BACKEND [lindex $argv 11]
+set MANAGER_DB_NAME [lindex $argv 12]
+set MANAGER_DB_HOST [lindex $argv 13]
+set MANAGER_DB_PORT [lindex $argv 14]
+set MANAGER_DB_PROTOCOL [lindex $argv 15]
+set MANAGER_ENABLE_TFTP [lindex $argv 16]
+
+# Run mgr-setup script and put to user input our variables
+spawn /usr/lib/susemanager/bin/mgr-setup -s
+expect "MANAGER_USER="
+send "$MANAGER_USER\r"
+expect "MANAGER_PASS="
+send "$MANAGER_PASS\r"
+expect "MANAGER_ADMIN_EMAIL="
+send "$MANAGER_ADMIN_EMAIL\r"
+expect "CERT_CNAMES="
+send "$CERT_CNAMES\r"
+expect "CERT_O="
+send "$CERT_O\r"
+expect "CERT_OU="
+send "$CERT_OU\r"
+expect "CERT_CITY="
+send "$CERT_CITY\r"
+expect "CERT_STATE="
+send "$CERT_STATE\r"
+expect "CERT_COUNTRY="
+send "$CERT_COUNTRY\r"
+expect "CERT_EMAIL="
+send "$CERT_EMAIL\r"
+expect "CERT_PASS="
+send "\r"
+expect "LOCAL_DB="
+send "$LOCAL_DB\r"
+expect "DB_BACKEND="
+send "$DB_BACKEND\r"
+expect "MANAGER_DB_NAME="
+send "$MANAGER_DB_NAME\r"
+expect "MANAGER_DB_HOST="
+send "$MANAGER_DB_HOST\r"
+expect "MANAGER_DB_PORT="
+send "$MANAGER_DB_PORT\r"
+expect "MANAGER_DB_PROTOCOL="
+send "$MANAGER_DB_PROTOCOL\r"
+expect "MANAGER_ENABLE_TFTP="
+send "$MANAGER_ENABLE_TFTP\r"
+expect "SCC_USER="
+send "\r"
+expect "SCC_PASS="
+send "\r"
+expect "ISS_PARENT="
+send "\r"
+expect "ACTIVATE_SLP="
+send "n\r"
+expect

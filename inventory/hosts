@@ -33,3 +33,6 @@ ejbca.host.name
 
 [nexus_servers]
 nexus.host.name
+
+[uyuni_servers]
+uyuni-master.host.name

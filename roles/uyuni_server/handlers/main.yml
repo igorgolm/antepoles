@@ -1,0 +1,18 @@
+---
+- name: restart postgresql
+  systemd:
+    name: postgresql
+    state: restarted
+    enabled: yes
+
+- name: restart salt-master
+  systemd:
+    name: salt-master
+    state: restarted
+    enabled: yes
+
+- name: restart salt-api
+  systemd:
+    name: salt-api
+    state: restarted
+    enabled: yes

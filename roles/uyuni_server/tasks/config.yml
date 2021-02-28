@@ -1,0 +1,178 @@
+---
+- name: Create Salt API keys catalog
+  file:
+    path: "/etc/salt/pki/api/"
+    state: directory
+    owner: root
+    group: salt
+    mode: 0750
+  tags:
+    - install_uyuni_server
+
+- name: Copy repos GPG keys
+  copy:
+    src: "gpg"
+    dest: "/etc/rhn"
+    mode: 0644
+    owner: root
+    group: salt
+  tags:
+    - install_uyuni_server
+    - update_gpg_keys
+
+- name: Create symbolic for gpg keys 
+  file:
+    src: "{{ gpg_key_catalog }}"
+    dest: "/srv/www/htdocs/pub/gpg"
+    state: link
+  tags:
+    - install_uyuni_server
+    - update_gpg_keys
+
+- name: Copy Salt API PKI key and cert
+  template:
+    src: "salt/pki/api/{{ item }}"
+    dest: "/etc/salt/pki/api/{{ item }}"
+    mode: 0644
+    owner: root
+    group: salt
+  notify: restart salt-api
+  with_items:
+    - salt-api.crt
+    - salt-api.key
+  tags:
+    - install_uyuni_server
+    - update_salt_keys
+
+- name: Copy Salt API cert to ca-certificates directory
+  template:
+    src: "salt/pki/api/salt-api.crt"
+    dest: "/etc/pki/trust/anchors/salt-api.crt"
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart salt-api
+  tags:
+    - install_uyuni_server
+    - update_salt_keys
+
+- name: Update CA certs
+  shell: /usr/sbin/update-ca-certificates
+  tags:
+    - install_uyuni_server
+    - update_salt_keys
+
+- name: Create Salt pillar data directory
+  file:
+    path: '/srv/pillar/{{ item }}'
+    state: directory
+    owner: root
+    group: salt
+    mode: 0750
+  with_items:
+    - users
+    - gpg
+    - databases
+  tags:
+    - install_uyuni_server
+    - update_pillar_data
+
+- name: Copy Salt pillar data
+  template:
+    src: "salt/srv/pillar/{{ item }}/init.sls.j2"
+    dest: "/srv/pillar/{{ item }}/init.sls"
+    mode: 0640
+    owner: salt
+    group: salt
+  with_items:
+    - users
+    - gpg
+    - databases
+  tags:
+    - install_uyuni_server
+    - update_pillar_data
+
+- name: Copy top.sls file to Salt pillar directory
+  template:
+    src: "salt/srv/pillar/top.sls.j2"
+    dest: "/srv/pillar/top.sls"
+    mode: 0644
+    owner: root
+    group: salt
+  tags:
+    - install_uyuni_server
+    - update_pillar_data
+
+- name: Copy Web SSL cert
+  template:
+    src: "ssl/ssl.crt/server.crt"
+    dest: "/etc/apache2/ssl.crt/server.crt"
+    mode: 0640
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - install_uyuni_server
+
+- name: Copy Web SSL key
+  template:
+    src: ssl/ssl.key/server.key
+    dest: "/etc/apache2/ssl.key/server.key"
+    mode: 0640
+    owner: root
+    group: root
+    backup: yes
+  tags:
+    - install_uyuni_server
+
+- name: Copy RHN CA cert
+  copy:
+    src: "certs/RHN-ORG-TRUSTED-SSL-CERT_TEST"
+    dest: "/srv/www/htdocs/pub/RHN-ORG-TRUSTED-SSL-CERT"
+    mode: 0644
+    owner: root
+    group: root
+  when: "'test_uyuni_servers' in group_names"
+  tags:
+    - install_uyuni_server
+
+- name: Copy RHN CA cert
+  copy:
+    src: "certs/RHN-ORG-TRUSTED-SSL-CERT_PROD"
+    dest: "/srv/www/htdocs/pub/RHN-ORG-TRUSTED-SSL-CERT"
+    mode: 0644
+    owner: root
+    group: root
+  when: "'prod_uyuni_servers' in group_names"
+  tags:
+    - install_uyuni_server
+
+- name: Add localhost IP address of uyuni master
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '.*{{ item }}$'
+    line: "127.0.0.1 {{item}}"
+    state: present
+  with_items: master-uyuni-1a
+  tags:
+    - install_uyuni_server
+
+- name: Copy Cobbler settings
+  template:
+    src: cobbler/settings.j2
+    dest: "/etc/cobbler/settings"
+    mode: 0640
+    owner: root
+    group: root
+  tags:
+    - install_uyuni_server
+  
+- name: Copy Cobbler modules.conf
+  template:
+    src: cobbler/modules.conf.j2
+    dest: "/etc/cobbler/modules.conf"
+    mode: 0640
+    owner: root
+    group: root
+  tags:
+    - install_uyuni_server

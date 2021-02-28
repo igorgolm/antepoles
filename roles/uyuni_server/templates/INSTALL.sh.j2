@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "Uyuni Init/Setup script"
+
+# Run SUSE Manager configuration script
+echo -e "\t NB! DONT ABORT THIS SCRIPT! \n"
+
+expect /opt/mgr_conf.sh {{ uyuni_manager_user }} {{ uyuni_manager_password }} {{ uyuni_manager_admin_email }} {{ inventory_hostname }} \
+{{ uyuni_cert_o }} {{ uyuni_cert_ou }} {{ uyuni_cert_city }} {{ uyuni_cert_state }} {{ uyuni_cert_country }} {{ uyuni_cert_email }} \
+{{ uyuni_local_db }} {{ uyuni_manager_db_backend }} {{ uyuni_manager_db_name }} {{ uyuni_manager_db_host }} {{ uyuni_manager_db_port }} \
+{{ uyuni_manager_db_protocol }} {{ uyuni_manager_enable_tftp }}
+
+# Get Access key for mgr-websockify service
+grep secret_key /etc/rhn/rhn.conf | tr -d ' ' | cut -f2 -d '=' | perl -ne 's/([0-9a-f]{2})/print chr hex $1/gie' > /etc/rhn/websockify.key
+
+sleep 90
+
+echo -e "\n\n If install was correct, than remove this script!"

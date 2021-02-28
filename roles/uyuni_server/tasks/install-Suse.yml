@@ -1,0 +1,49 @@
+---
+- name: Install a list of packages
+  zypper:
+    name: '{{ item }}'
+    state: latest
+  with_items: '{{ packages }}'
+  tags:
+    - install_uyuni_server
+
+- name: Add Uyuni repo
+  zypper_repository:
+    name: uyuni-snapshot-repo
+    repo: '{{ uyuni_repo_url }}'
+    state: present
+    runrefresh: yes
+    auto_import_keys: true
+  tags:
+    - install_uyuni_server
+
+- name: Install Uyuni Server
+  zypper:
+    name: patterns-uyuni_server
+    state: present
+  tags:
+    - install_uyuni_server
+
+# Not tested
+- name: Copy Uyuni Server init scripts
+  template:
+    src: "INSTALL.sh.j2"
+    dest: "/opt/INSTALL.sh"
+    mode: 0700
+    owner: root
+    group: root
+  tags:
+    - install_uyuni_server
+
+# Not tested
+- name: Copy mgr_conf init scripts
+  template:
+    src: "mgr_conf.sh.j2"
+    dest: "/opt/mgr_conf.sh"
+    mode: 0700
+    owner: root
+    group: root
+  tags:
+    - install_uyuni_server
+
+- import_tasks: config.yml

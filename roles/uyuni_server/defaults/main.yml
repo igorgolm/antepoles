@@ -1,0 +1,7 @@
+---
+uyuni_version: 2020.09
+uyuni_repo_url: https://download.opensuse.org/repositories/systemsmanagement:/Uyuni:/Snapshots:/{{ uyuni_version }}/images/repo/Uyuni-Server-POOL-Media1
+
+postgresql_pakacge: postgresql12-server
+
+gpg_key_catalog: /etc/rhn/gpg

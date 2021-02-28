@@ -1,0 +1,4 @@
+---
+- hosts: "{{ nodes }}"
+  roles:
+     - uyuni_proxy_server

@@ -1,0 +1,8 @@
+---
+- name: Load OS dependent variables
+  include_vars: "vars.yml"
+  tags:
+   - always
+
+- include: install-Suse.yml
+  when: "'uyuni_servers' in group_names and ansible_distribution == 'openSUSE Leap'"

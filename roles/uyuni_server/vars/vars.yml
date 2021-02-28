@@ -1,0 +1,3 @@
+---
+packages:
+  - pam_ldap
