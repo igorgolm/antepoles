@@ -1,5 +1,0 @@
-packages:
- - python-pip
- - python-docker
- - gnupg2 
- - pass

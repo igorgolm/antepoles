@@ -1,0 +1,15 @@
+---
+iso_image_dir: /var/lib/libvirt/boot
+vm_disks_dir: /var/lib/libvirt/images
+
+centos7_iso_name: CentOS-7-x86_64-Minimal-2009.iso
+
+kvm_custom_conf_dir: /opt/kvm
+
+openstack_vm_network_name: openstackvms
+openstack_vm_network_uuid: 82460392-2310-400e-a1f9-7f19eaeeb826
+openstack_vm_network_interface_mac: 52:54:00:60:f8:6e
+openstack_vm_network_ip_address: 192.169.142.1
+openstack_vm_network_mask: 255.255.255.0
+openstack_vm_network_dhcp_start: 192.169.142.2
+openstack_vm_network_dhcp_end: 192.169.142.254

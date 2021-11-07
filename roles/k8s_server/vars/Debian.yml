@@ -1,0 +1,23 @@
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - net-tools
+
+kubernetes_packages_worker:
+  - name: kubelet
+    state: present
+  - name: kubeadm
+    state: present
+  - name: kubernetes-cni
+    state: present
+
+kubernetes_packages_master:
+  - name: kubelet
+    state: present
+  - name: kubectl
+    state: present
+  - name: kubeadm
+    state: present
+  - name: kubernetes-cni
+    state: present

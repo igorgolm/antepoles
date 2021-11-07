@@ -1,28 +1,14 @@
 ---
-- name: Remove old Docker versions
-  apt:
-    name: '{{ item }}'
-    state: absent
-  with_items:
-    - docker
-    - docker-engine
-    - docker.io
-    - containerd
-    - runc
+- name: Load OS dependent variables
+  include_vars: "{{ ansible_distribution }}.yml"
   tags:
-    - install_docker
+   - always
 
-- name: Update the repository cache and install packages for HTTPS using
+- name: Install a list of packages
   apt:
     name: '{{ item }}'
     state: latest
-    update_cache: yes
-  with_items:
-    - apt-transport-https
-    - ca-certificates
-    - curl
-    - gnupg2
-    - software-properties-common
+  with_items: '{{ packages }}'
   tags:
     - install_docker
 

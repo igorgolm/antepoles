@@ -1,0 +1,75 @@
+---
+- name: Load OS dependent variables
+  include_vars: "{{ ansible_distribution }}.yml"
+  tags:
+   - always
+
+- name: Install a list of packages
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items: '{{ packages }}'
+  tags:
+    - install_kvm
+
+- name: Verify KVM module is loaded
+  shell: "lsmod | grep -i kvm"
+  register: result
+  failed_when: "result.rc != 0"
+  tags:
+    - install_kvm
+
+- name: restart libvirtd service
+  service: 
+    name: libvirtd
+    enabled: yes 
+    state: restarted
+  tags:
+    - install_kvm
+    
+- name: Create ISO images directory
+  file:
+    path: '{{ iso_image_dir }}'
+    state: directory
+    owner: root
+    group: qemu
+    mode: '0750'
+  tags:
+    - install_kvm
+
+- name: Create VM disks storage directory
+  file:
+    path: '{{ vm_disks_dir }}'
+    state: directory
+    owner: root
+    group: qemu
+    mode: '0750'
+  tags:
+    - install_kvm 
+
+- name: Download CentOS7 iso
+  get_url:
+    url: http://ftp.funet.fi/pub/mirrors/centos.org/7.9.2009/isos/x86_64/{{ centos7_iso_name }}
+    dest: "{{ iso_image_dir }}/{{ centos7_iso_name }}"
+  tags:
+    - install_kvm 
+
+- name: Create KVM conf files directory
+  file:
+    path: '{{ kvm_custom_conf_dir }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+  tags:
+    - install_kvm
+
+- name: Copy openstackvms interface conf
+  template:
+    src: inernal_openstack_net.xml.j2
+    dest: '{{ kvm_custom_conf_dir }}/inernal_openstack_net.xml'
+    owner: root
+    group: root
+    mode: '0600'
+  tags:
+    - install_kvm

@@ -36,3 +36,27 @@ nexus.host.name
 
 [uyuni_servers]
 uyuni-master.host.name
+
+[kvm_servers]
+mainserver ansible_ssh_host=192.168.0.51
+
+[openstack_servers]
+centos7-al-controller ansible_ssh_host=192.168.0.24
+centos7-ak-compute1 ansible_ssh_host=192.168.0.25
+centos7-ak-compute2 ansible_ssh_host=192.168.0.26
+
+[docker_servers:children]
+openstack_servers
+k8s_servers
+
+[k8s_worker_servers]
+kube3 ansible_ssh_host=192.168.50.4
+kube2 ansible_ssh_host=192.168.50.6
+
+[k8s_controller_servers]
+kube1 ansible_ssh_host=192.168.50.5
+
+[k8s_servers:children]
+k8s_worker_servers
+k8s_controller_servers
+

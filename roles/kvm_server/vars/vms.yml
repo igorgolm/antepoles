@@ -1,0 +1,32 @@
+---
+virtual_machines:
+- name: centos7-controller
+  cpu: 2
+  mem: 1024
+  disk: 25
+  bridge: br0
+- name: centos7-compute1
+  cpu: 2
+  mem: 1500
+  disk: 25
+  bridge: br0
+- name: centos7-compute2
+  cpu: 1
+  mem: 1500
+  disk: 25
+  bridge: br0
+- name: centos7-ak-controller
+  cpu: 1
+  mem: 2048
+  disk: 25
+  bridge: br0
+- name: centos7-ak-compute1
+  cpu: 1
+  mem: 2048
+  disk: 25
+  bridge: br0
+- name: centos7-ak-compute2
+  cpu: 1
+  mem: 2048
+  disk: 25
+  bridge: br0  

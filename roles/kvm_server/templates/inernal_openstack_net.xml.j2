@@ -1,0 +1,16 @@
+<network>
+  <name>{{ openstack_vm_network_name }}</name>
+  <uuid>{{ openstack_vm_network_uuid }}</uuid>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='virbr1' stp='on' delay='0' />
+  <mac address='{{ openstack_vm_network_interface_mac }}'/>
+  <ip address='{{ openstack_vm_network_ip_address }}' netmask='{{ openstack_vm_network_mask }}'>
+    <dhcp>
+      <range start='{{ openstack_vm_network_dhcp_start }}' end='{{ openstack_vm_network_dhcp_end }}' />
+    </dhcp>
+  </ip>
+</network>

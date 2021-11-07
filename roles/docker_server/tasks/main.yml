@@ -1,6 +1,11 @@
 ---
-- include_tasks: install.yml
-  when: "'docker_servers' in group_names"
+- include_tasks: install_Debian.yml
+  when: "'docker_servers' in group_names and ansible_distribution == 'Debian'"
+  tags:
+   - install_docker
+
+- include_tasks: install_CentOS.yml
+  when: "'docker_servers' in group_names and ansible_distribution == 'CentOS'"
   tags:
    - install_docker
 

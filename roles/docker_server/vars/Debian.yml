@@ -1,0 +1,10 @@
+packages:
+ - python-pip
+ - python-docker
+ - gnupg2 
+ - pass
+ - apt-transport-https
+ - ca-certificates
+ - curl
+ - gnupg2
+ - software-properties-common

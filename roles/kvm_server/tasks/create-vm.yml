@@ -1,0 +1,35 @@
+---
+- name: Check if VM already exists
+  stat: 
+    path: /var/lib/libvirt/images/{{ vm.name }}.qcow2
+    get_checksum: no 
+  register: vm_stat
+  tags:
+    - run_vms
+
+- name: "Create CentOS7 virtual machine - {{ vm.name }}"
+  shell: 
+    cmd: >- 
+        virt-install 
+        --noautoconsole
+        --name {{ vm.name }}
+        --memory {{ vm.mem|default('512') }}
+        --vcpus  {{ vm.cpu|default('1') }}
+        --cdrom {{ iso_image_dir }}/{{ centos7_iso_name }}
+        --disk {{ vm_disks_dir }}/{{ vm.name }}.qcow2,size={{ vm.disk }},bus=virtio,format=qcow2 
+        --os-type linux 
+        --os-variant centos7.0
+        --virt-type kvm 
+        --graphics vnc 
+        --network bridge={{ vm.bridge|default('default') }},model=virtio 
+  when: vm_stat.stat.exists == false
+  tags:
+    - run_vms
+
+- name: "{{ vm.name }} enable on startup"
+  virt: 
+    name: "{{ vm.name }}"
+    autostart: true
+  when: vm_stat.stat.exists == true
+  tags:
+    - run_vms

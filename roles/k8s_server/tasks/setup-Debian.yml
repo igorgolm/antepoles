@@ -1,0 +1,86 @@
+---
+- include_vars: Debian.yml
+  when: ansible_facts['os_family'] == "Debian"
+  tags:
+    - install_k8s
+
+- name: Install a list of Debian packages
+  apt:
+    name: '{{ item }}'
+  with_items: '{{ packages }}'
+  tags:
+    - install_k8s
+
+- name: Disable swapping
+  shell: swapoff -a
+  tags:
+    - install_k8s
+
+- name: Disable swap usage permanently
+  replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: yes
+  tags:
+    - install_k8s
+
+- name: Add Kubernetes apt key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+  register: add_repository_key
+  ignore_errors: "{{ kubernetes_apt_ignore_key_error }}"
+  tags:
+    - install_k8s
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: "{{ kubernetes_apt_repository }}"
+    state: present
+    update_cache: true
+  tags:
+    - install_k8s
+
+- name: Add Kubernetes apt preferences file to pin a version
+  template:
+    src: apt-preferences-kubernetes.j2
+    dest: /etc/apt/preferences.d/kubernetes
+    mode: 0644
+  tags:
+    - install_k8s
+
+- name: Install Kubernetes packages for Master node
+  package:
+    name: "{{ item.name | default(item) }}"
+    state: "{{ item.state | default('present') }}"
+  notify: restart kubelet
+  with_items: "{{ kubernetes_packages_master }}"
+  when: kubernetes_role == 'master'
+  tags:
+    - install_k8s
+
+- name: Install Kubernetes packages for Worker node
+  package:
+    name: "{{ item.name | default(item) }}"
+    state: "{{ item.state | default('present') }}"
+  notify: restart kubelet
+  with_items: "{{ kubernetes_packages_worker }}"
+  when: kubernetes_role == 'worker'
+  tags:
+    - install_k8s
+
+- name: Ensure kubelet is started and enabled at boot
+  service:
+    name: kubelet
+    state: started
+    enabled: true
+  tags:
+    - install_k8s
+
+- name: Check if Kubernetes has already been initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubernetes_init_stat
+  tags:
+    - install_k8s

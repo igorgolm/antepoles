@@ -1,0 +1,12 @@
+---
+- include_tasks: setup-Debian.yml
+  when: ansible_os_family == 'Debian'
+  tags:
+    - always
+
+# Set up master.
+- include_tasks: master-setup.yml
+  when: kubernetes_role == 'master'
+  tags:
+    - install_k8s
+    - get_join_command
