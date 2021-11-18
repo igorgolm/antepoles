@@ -4,9 +4,12 @@
   tags:
     - always
 
-# Set up master.
+# Set up master
 - include_tasks: master-setup.yml
   when: kubernetes_role == 'master'
   tags:
     - install_k8s
     - get_join_command
+
+- include_tasks: worker-setup.yml
+  when: kubernetes_role == 'worker'

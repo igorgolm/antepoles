@@ -79,12 +79,18 @@
     - setup_k8s_master
     - get_join_command
 
+- name: Allow pods on master node (if configured)
+  command: "kubectl taint nodes --all node-role.kubernetes.io/master-"
+  when:
+    - kubernetes_allow_pods_on_master | bool
+    - not kubernetes_init_stat.stat.exists
+
 - debug: 
     msg: | 
-    kubeadm join command - {{ kubernetes_join_command_result }}
-    dont forget to label node! For example, for worker node
-    kubectl label nodes [NODE] kubernetes.io/role=worker
-    And restart joined node after joining the cluster
+      kubeadm join command - {{ kubernetes_join_command_result }}
+      dont forget to label node! For example, for worker node
+      kubectl label nodes [NODE] kubernetes.io/role=worker
+      And restart joined node after joining the cluster
   tags:
     - setup_k8s_master
     - get_join_command

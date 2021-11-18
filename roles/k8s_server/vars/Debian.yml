@@ -3,6 +3,10 @@ packages:
   - ca-certificates
   - curl
   - net-tools
+  - lvm2
+  - open-iscsi
+  - nfs-common
+  - tgt
 
 kubernetes_packages_worker:
   - name: kubelet

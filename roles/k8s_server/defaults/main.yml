@@ -3,10 +3,12 @@ kubernetes_version: '1.21'
 
 kubernetes_kubeadm_init_extra_opts: ""
 kubernetes_join_command_extra_opts: ""
-kubernetes_allow_pods_on_master: false
+kubernetes_allow_pods_on_master: true
 kubernetes_pod_network:
   cni: 'flannel'
   cidr: '10.244.0.0/16'
+
+data_dir_name: /var/lib/rook
 
 kubernetes_kubeadm_kubelet_config_file_path: '/etc/kubernetes/kubeadm-kubelet-config.yaml'
 kubernetes_config_kubelet_configuration:
